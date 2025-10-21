@@ -1,0 +1,20 @@
+# Firebase App Hosting configuration for Next.js
+runConfig:
+  # Increase memory for build (helps with large builds)
+  memory: 1Gi
+  # Increase CPU for faster builds
+  cpu: 1
+  # Maximum instances (1 for free tier)
+  maxInstances: 1
+  # Minimum instances (0 to reduce costs)
+  minInstances: 0
+  # Concurrency (how many requests per instance)
+  concurrency: 80
+
+env:
+  # Environment variables from .env.local
+  # Firebase config is auto-injected by Firebase App Hosting
+  - variable: NODE_ENV
+    value: production
+  - variable: NEXT_PUBLIC_APP_NAME
+    value: "Rabbit AI Studio"

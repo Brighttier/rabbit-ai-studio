@@ -1,0 +1,87 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own document
+      allow read: if isOwner(userId) || isAdmin();
+      // Only allow creation during signup
+      allow create: if isOwner(userId);
+      // Users can update their own document (except role)
+      allow update: if isOwner(userId) &&
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
+                       isAdmin();
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Models collection - stores model registry
+    match /models/{modelId} {
+      // Anyone authenticated can read models
+      allow read: if isAuthenticated();
+      // Only admins can create, update, or delete models
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Sessions collection - stores chat and image generation history
+    match /sessions/{sessionId} {
+      // Users can only read their own sessions
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid ||
+                     isAdmin();
+      // Users can create sessions for themselves
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      // Users can update their own sessions
+      allow update: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid;
+      // Users can delete their own sessions
+      allow delete: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid ||
+                       isAdmin();
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() &&
+                       get(/databases/$(database)/documents/sessions/$(sessionId)).data.userId == request.auth.uid ||
+                       isAdmin();
+        allow create: if isAuthenticated() &&
+                         get(/databases/$(database)/documents/sessions/$(sessionId)).data.userId == request.auth.uid;
+        allow update, delete: if isAuthenticated() &&
+                                 get(/databases/$(database)/documents/sessions/$(sessionId)).data.userId == request.auth.uid ||
+                                 isAdmin();
+      }
+    }
+
+    // System logs - admin only
+    match /logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

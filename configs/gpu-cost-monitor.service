@@ -1,0 +1,13 @@
+[Unit]
+Description=GPU Cost Monitoring Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/home/ubuntu/monitor-gpu-costs.sh
+Restart=always
+RestartSec=600 # Run every 10 minutes
+
+[Install]
+WantedBy=multi-user.target
