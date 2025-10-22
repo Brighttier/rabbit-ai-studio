@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/auth";
-import { Nav } from "@/components/ui/nav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,14 +19,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <div className="flex flex-col min-h-screen">
-              <Nav />
-              <main className="flex-1">
-                {children}
-              </main>
-            </div>
-          </div>
+          {children}
         </AuthProvider>
       </body>
     </html>
