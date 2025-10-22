@@ -12,9 +12,62 @@ runConfig:
   concurrency: 80
 
 env:
-  # Environment variables from .env.local
-  # Firebase config is auto-injected by Firebase App Hosting
+  # Public Firebase Configuration (can be plain text as they're client-side)
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyA6tLTPA-N2zp9h211EXiE6X7Q0WZ5121w
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: tanzen-186b4.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: tanzen-186b4
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: tanzen-186b4.firebasestorage.app
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "322259888035"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:322259888035:web:76c20aa813ec0546995c16
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-TM13QR2M4G
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://rabbit-ai-studio-main--tanzen-186b4.us-east4.hosted.app
+
+  # Application Settings
   - variable: NODE_ENV
     value: production
   - variable: NEXT_PUBLIC_APP_NAME
     value: "Rabbit AI Studio"
+
+  # Firebase Admin SDK (Server-side) - From Secret Manager
+  - variable: FIREBASE_PROJECT_ID
+    value: tanzen-186b4
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: firebase-client-email
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: firebase-private-key
+
+  # AI Provider URLs (non-sensitive)
+  - variable: LM_STUDIO_BASE_URL
+    value: http://localhost:1234
+  - variable: HUGGINGFACE_API_URL
+    value: https://api-inference.huggingface.co/models
+  - variable: REPLICATE_API_URL
+    value: https://api.replicate.com/v1
+  - variable: OLLAMA_BASE_URL
+    value: http://35.188.180.248:11434
+  - variable: AUTOMATIC1111_BASE_URL
+    value: http://35.188.180.248:7861
+  - variable: COMFYUI_BASE_URL
+    value: http://35.188.180.248:8188
+
+  # API Keys - From Secret Manager
+  - variable: HUGGINGFACE_API_KEY
+    secret: huggingface-api-key
+  - variable: REPLICATE_API_KEY
+    secret: replicate-api-key
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: OPENROUTER_API_KEY
+    secret: openrouter-api-key
+    availability:
+      - BUILD
+      - RUNTIME
