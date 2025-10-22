@@ -9,23 +9,36 @@ export function initializeAdmin() {
   }
 
   const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      'Missing Firebase Admin SDK credentials. Please check your environment variables.'
-    );
-  }
-
-  adminApp = admin.initializeApp({
-    credential: admin.credential.cert({
+  // In production (Cloud Run), use Application Default Credentials
+  // In development, use explicit credentials from environment variables
+  if (process.env.NODE_ENV === 'production' || process.env.K_SERVICE) {
+    // Running on Cloud Run - use Application Default Credentials
+    console.log('[Admin SDK] Using Application Default Credentials (Cloud Run)');
+    adminApp = admin.initializeApp({
       projectId,
-      clientEmail,
-      privateKey,
-    }),
-    storageBucket: `${projectId}.appspot.com`,
-  });
+    });
+  } else {
+    // Running locally - use explicit credentials
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error(
+        'Missing Firebase Admin SDK credentials. Please check your environment variables.'
+      );
+    }
+
+    console.log('[Admin SDK] Using explicit credentials (local development)');
+    adminApp = admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      }),
+      storageBucket: `${projectId}.appspot.com`,
+    });
+  }
 
   return adminApp;
 }
