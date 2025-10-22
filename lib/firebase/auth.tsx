@@ -63,8 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Create user document if it doesn't exist
             const newUserRole: UserRole = 'user'; // Default role
             await setDoc(doc(db, 'users', firebaseUser.uid), {
+              uid: firebaseUser.uid,
               email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
+              displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
               photoURL: firebaseUser.photoURL,
               role: newUserRole,
               createdAt: serverTimestamp(),
@@ -103,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Create user document in Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
         email: userCredential.user.email,
         displayName,
         photoURL: null,
@@ -125,8 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!userDoc.exists()) {
         // Create user document
         await setDoc(doc(db, 'users', result.user.uid), {
+          uid: result.user.uid,
           email: result.user.email,
-          displayName: result.user.displayName,
+          displayName: result.user.displayName || result.user.email?.split('@')[0] || 'User',
           photoURL: result.user.photoURL,
           role: 'user' as UserRole,
           createdAt: serverTimestamp(),

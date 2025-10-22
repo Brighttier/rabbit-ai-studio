@@ -154,28 +154,39 @@ export function getDefaultModels(): Omit<Model, 'id' | 'createdAt' | 'updatedAt'
  * Returns the number of models seeded
  */
 export async function seedModels(): Promise<number> {
-  const app = getAdminApp();
-  const db = getFirestore(app);
-  const defaultModels = getDefaultModels();
+  try {
+    console.log('Starting model seeding...');
+    const app = getAdminApp();
+    const db = getFirestore(app);
+    const defaultModels = getDefaultModels();
 
-  const batch = db.batch();
-  let count = 0;
+    console.log(`Preparing to seed ${defaultModels.length} models`);
 
-  for (const modelData of defaultModels) {
-    const modelRef = db.collection('models').doc();
-    const now = Timestamp.now();
+    const batch = db.batch();
+    let count = 0;
 
-    const model: Model = {
-      id: modelRef.id,
-      ...modelData,
-      createdAt: now.toDate(),
-      updatedAt: now.toDate(),
-    };
+    for (const modelData of defaultModels) {
+      const modelRef = db.collection('models').doc();
+      const now = Timestamp.now();
 
-    batch.set(modelRef, model);
-    count++;
+      const model: Model = {
+        id: modelRef.id,
+        ...modelData,
+        createdAt: now.toDate(),
+        updatedAt: now.toDate(),
+      };
+
+      batch.set(modelRef, model);
+      count++;
+    }
+
+    console.log('Committing batch write...');
+    await batch.commit();
+    console.log(`Successfully seeded ${count} models`);
+
+    return count;
+  } catch (error) {
+    console.error('Error in seedModels:', error);
+    throw error;
   }
-
-  await batch.commit();
-  return count;
 }
