@@ -52,22 +52,33 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   // Auto-seed if database is empty and no filters applied
   if (models.length === 0 && !type && !provider && enabledParam === null) {
-    console.log('Database is empty, auto-seeding models...');
+    console.log('[AUTO-SEED] Database is empty, attempting to seed models...');
     try {
       // Call seedModels directly instead of making HTTP request
       const count = await seedModels();
-      console.log(`Auto-seed successful: ${count} models created`);
+      console.log(`[AUTO-SEED] ✓ Successfully seeded ${count} models`);
+
+      // Clear model cache to ensure fresh data
+      router.clearCache();
 
       // Fetch models again after seeding
       const seededModels = await router.listModels(filter);
+      console.log(`[AUTO-SEED] ✓ Verified ${seededModels.length} models in database`);
+
       return NextResponse.json({
         success: true,
         data: seededModels,
         autoSeeded: true,
+        message: `Auto-seeded ${count} models successfully`,
       } as ApiResponse<Model[]>);
-    } catch (error) {
-      console.error('Auto-seed failed:', error);
+    } catch (error: any) {
+      console.error('[AUTO-SEED] ✗ Failed to auto-seed models:', {
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
       // Continue with empty array if auto-seed fails
+      // This allows the user to manually seed via the admin panel
     }
   }
 

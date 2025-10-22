@@ -95,10 +95,35 @@ export async function authenticateRequest(request: NextRequest): Promise<User> {
   const decodedToken = await verifyAuthToken(token);
 
   // Get user data
-  const user = await getUserData(decodedToken.uid);
+  let user = await getUserData(decodedToken.uid);
 
+  // Auto-create user document if it doesn't exist
   if (!user) {
-    throw new AuthError('User not found', 404);
+    console.log(`User document not found for UID ${decodedToken.uid}, auto-creating...`);
+
+    try {
+      const db = getAdminFirestore();
+      const now = new Date();
+
+      const newUserData: User = {
+        uid: decodedToken.uid,
+        email: decodedToken.email || '',
+        displayName: decodedToken.name || decodedToken.email?.split('@')[0] || 'User',
+        photoURL: decodedToken.picture,
+        role: 'user', // Default role, can be upgraded to admin manually
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      await db.collection('users').doc(decodedToken.uid).set(newUserData);
+
+      console.log(`Successfully auto-created user document for ${decodedToken.uid} with role: user`);
+
+      user = newUserData;
+    } catch (error) {
+      console.error('Failed to auto-create user document:', error);
+      throw new AuthError('User not found and failed to create user document', 500);
+    }
   }
 
   return user;
