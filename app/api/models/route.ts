@@ -4,6 +4,7 @@ import { ApiResponse, Model } from '@/lib/types';
 import { requireAuth, requireAdmin } from '@/lib/middleware/auth';
 import { withErrorHandling, createValidationError } from '@/lib/middleware/errorHandler';
 import { getAdminFirestore } from '@/lib/firebase/adminApp';
+import { seedModels } from '@/lib/seedModels';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -53,24 +54,17 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   if (models.length === 0 && !type && !provider && enabledParam === null) {
     console.log('Database is empty, auto-seeding models...');
     try {
-      // Call the seed endpoint internally
-      const seedResponse = await fetch(new URL('/api/admin/seed-models', request.url), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Call seedModels directly instead of making HTTP request
+      const count = await seedModels();
+      console.log(`Auto-seed successful: ${count} models created`);
 
-      if (seedResponse.ok) {
-        console.log('Auto-seed successful, fetching models again...');
-        // Fetch models again after seeding
-        const seededModels = await router.listModels(filter);
-        return NextResponse.json({
-          success: true,
-          data: seededModels,
-          autoSeeded: true,
-        } as ApiResponse<Model[]>);
-      }
+      // Fetch models again after seeding
+      const seededModels = await router.listModels(filter);
+      return NextResponse.json({
+        success: true,
+        data: seededModels,
+        autoSeeded: true,
+      } as ApiResponse<Model[]>);
     } catch (error) {
       console.error('Auto-seed failed:', error);
       // Continue with empty array if auto-seed fails
