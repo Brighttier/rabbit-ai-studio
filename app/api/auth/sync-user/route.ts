@@ -40,7 +40,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       uid: authUser.uid,
       email: authUser.email || '',
       displayName: authUser.displayName || authUser.email?.split('@')[0] || 'User',
-      photoURL: authUser.photoURL || null,
+      photoURL: authUser.photoURL || undefined,
       role: 'user', // Default role, can be upgraded to admin manually
       createdAt: now,
       updatedAt: now,

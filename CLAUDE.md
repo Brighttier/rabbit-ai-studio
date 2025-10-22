@@ -7,7 +7,7 @@
 
 ## 📋 Project Overview
 
-Rabbit AI Studio is a **modular, scalable Next.js application** for multi-model AI generation (text and image), designed for **internal uncensored use**. The platform integrates with **Firebase App Hosting**, **Firestore**, **Firebase Functions**, and multiple AI model endpoints including **LM Studio** (primary), **Hugging Face**, and extensible support for other providers.
+Rabbit AI Studio is a **modular, scalable Next.js application** for multi-model AI generation (text, image, and video), designed for **internal uncensored use**. The platform integrates with **Firebase App Hosting**, **Firestore**, **Firebase Functions**, and multiple AI model endpoints including **Ollama** (primary for text), **Automatic1111** (images), **ComfyUI** (videos), **Hugging Face**, and extensible support for other providers.
 
 ### Tech Stack
 - **Frontend:** Next.js 14+ (App Router), React 18, TypeScript
@@ -16,7 +16,7 @@ Rabbit AI Studio is a **modular, scalable Next.js application** for multi-model 
 - **Database:** Firestore
 - **Storage:** Firebase Storage
 - **Auth:** Firebase Authentication
-- **AI Providers:** LM Studio, Hugging Face, OpenRouter, Ollama, Vertex AI (extensible)
+- **AI Providers:** Ollama (text), Automatic1111 (images), ComfyUI (videos), Hugging Face, OpenRouter (extensible)
 
 ---
 
@@ -89,7 +89,7 @@ Rabbit AI Studio is a **modular, scalable Next.js application** for multi-model 
   name: string;
   displayName: string;
   description?: string;
-  provider: 'lmstudio' | 'huggingface' | 'openrouter' | 'ollama' | 'vertexai' | 'custom';
+  provider: 'ollama' | 'automatic1111' | 'comfyui' | 'huggingface' | 'openrouter' | 'custom';
   type: 'text' | 'image' | 'multimodal';
   endpointURL: string;
   apiKeyRef?: string;
@@ -195,12 +195,12 @@ FIREBASE_PROJECT_ID=
 FIREBASE_CLIENT_EMAIL=
 FIREBASE_PRIVATE_KEY=
 
-# LM Studio (Primary AI Provider)
-LMSTUDIO_API_URL=http://localhost:1234/v1
-LMSTUDIO_API_KEY=lm-studio
-LMSTUDIO_DEFAULT_MODEL=llama-3.1-8b-instruct
+# AI Provider URLs
+OLLAMA_BASE_URL=http://34.168.113.13:11434
+AUTOMATIC1111_BASE_URL=http://34.168.113.13:7860
+COMFYUI_BASE_URL=http://34.168.113.13:8188
 
-# Hugging Face (Secondary)
+# Hugging Face (Optional)
 HUGGINGFACE_API_KEY=
 HUGGINGFACE_API_URL=https://api-inference.huggingface.co/models
 
@@ -244,12 +244,12 @@ GCP_MODEL_ENDPOINT=
 - Implement streaming responses (SSE)
 - Add error handling and auth checks
 
-**Files to Create:**
-- `functions/src/index.ts`
-- `functions/package.json`
-- `app/api/generate-text/route.ts`
-- `app/api/generate-image/route.ts`
-- `lib/modelRouter.ts`
+**Files Created:**
+- ✓ `functions/src/index.ts`
+- ✓ `functions/package.json`
+- ✓ `app/api/generate-text/route.ts`
+- ✓ `app/api/generate-image/route.ts`
+- ✓ `lib/modelRouter.ts`
 
 ### 📋 Phase 3: Model Registry System
 
@@ -317,11 +317,12 @@ GCP_MODEL_ENDPOINT=
 - Load balancing for Firebase Functions
 - Cloud Logging integration
 
-**Files to Create:**
-- `lib/providers/lmstudio.ts`
-- `lib/providers/huggingface.ts`
-- `lib/providers/vertexai.ts`
-- `lib/providers/openrouter.ts`
+**Files Created:**
+- ✓ `lib/providers/ollama.ts`
+- ✓ `lib/providers/automatic1111.ts`
+- ✓ `lib/providers/comfyui.ts`
+- ✓ `lib/providers/huggingface.ts`
+- ✓ `lib/providers/openrouter.ts`
 
 ### 🔒 Phase 8: Deployment & Security
 
@@ -385,9 +386,11 @@ DELETE /api/models/:id - Delete model (admin only)
 - Automatic routing based on `modelId`
 
 ### 2. Multi-Provider Support
-- **Primary:** LM Studio (server-side, uncensored)
+- **Primary Text:** Ollama (self-hosted GPU server, uncensored)
+- **Primary Image:** Automatic1111 (self-hosted GPU server)
+- **Primary Video:** ComfyUI (self-hosted GPU server)
 - **Secondary:** Hugging Face Inference API
-- **Extensible:** OpenRouter, Ollama, Vertex AI, custom endpoints
+- **Extensible:** OpenRouter, custom endpoints
 
 ### 3. Role-Based Access Control
 - **Admin:** Full access to all features, model management, user management
@@ -468,11 +471,11 @@ npm run firebase:deploy:storage
 
 ### Context for Future Sessions
 - This is an **internal, uncensored AI platform** - security is role-based, not content-filtered
-- **LM Studio** is the primary text generation endpoint (server-side HTTP API)
+- **Self-hosted GPU server** (NVIDIA L4) runs Ollama (text), Automatic1111 (images), and ComfyUI (videos)
 - All model endpoints are abstracted through the Model Registry (Firestore collection)
 - Use **Firebase App Hosting** for deployment (not Vercel)
 - Dark mode is default and preferred
-- Follow the **phase-by-phase** approach - complete each phase before moving to the next
+- Most core phases are complete - focus on features and enhancements
 
 ### Code Style Guidelines
 - Use **TypeScript** for all files
@@ -508,7 +511,9 @@ npm run firebase:deploy:storage
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Firebase Documentation](https://firebase.google.com/docs)
 - [ShadCN UI Components](https://ui.shadcn.com/)
-- [LM Studio API Docs](https://lmstudio.ai/docs/api)
+- [Ollama API Docs](https://github.com/ollama/ollama/blob/main/docs/api.md)
+- [Automatic1111 API Docs](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API)
+- [ComfyUI Documentation](https://github.com/comfyanonymous/ComfyUI)
 - [Hugging Face Inference API](https://huggingface.co/docs/api-inference)
 
 ---

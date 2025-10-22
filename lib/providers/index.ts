@@ -7,12 +7,6 @@
 export { ProviderError, RateLimitError, AuthenticationError, BaseProvider } from './base';
 export type { AIProvider, ProviderConfig } from './base';
 
-// LM Studio provider
-export {
-  LMStudioProvider,
-  createLMStudioProvider,
-} from './lmstudio';
-
 // Hugging Face provider
 export {
   HuggingFaceProvider,

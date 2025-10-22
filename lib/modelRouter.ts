@@ -8,7 +8,6 @@ import {
   VideoGenerationResponse,
 } from './types';
 import { AIProvider, ProviderError } from './providers/base';
-import { createLMStudioProvider } from './providers/lmstudio';
 import { createHuggingFaceProvider } from './providers/huggingface';
 import { OllamaProvider } from './providers/ollama';
 import { Automatic1111Provider } from './providers/automatic1111';
@@ -35,12 +34,6 @@ export class ModelRouter {
    */
   private initializeProviders() {
     try {
-      // LM Studio provider (if base URL is available)
-      if (process.env.LM_STUDIO_BASE_URL) {
-        const lmstudio = createLMStudioProvider();
-        this.providers.set('lmstudio', lmstudio);
-      }
-
       // Ollama provider (always initialize - uses localhost by default)
       const ollama = new OllamaProvider();
       this.providers.set('ollama', ollama);
