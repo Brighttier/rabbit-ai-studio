@@ -3,18 +3,22 @@
 import { PageLayout } from '@/components/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { 
-  MessageCircle, 
-  ImageIcon, 
+import {
+  MessageCircle,
+  ImageIcon,
   Film,
   Zap,
   Lock,
   Server,
-  AlertTriangle
+  AlertTriangle,
+  LogIn
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/firebase/auth';
 
 export default function Home() {
+  const { user, loading } = useAuth();
+
   return (
     <PageLayout>
       <div className="flex flex-col items-center justify-center py-12">
@@ -24,7 +28,7 @@ export default function Home() {
             Rabbit AI Studio
           </h1>
           <p className="text-xl text-muted-foreground">
-            Multi-Model AI Platform for Text & Image Generation
+            Multi-Model AI Platform for Text, Image & Video Generation
           </p>
         </div>
 
@@ -42,44 +46,67 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-12">
-          <Link href="/chat" className="block group">
-            <Card className="p-6 h-full transition-colors hover:border-primary">
-              <div className="space-y-2">
-                <MessageCircle className="h-10 w-10 text-blue-500" />
-                <h3 className="text-xl font-semibold">Text Generation</h3>
-                <p className="text-sm text-muted-foreground">
-                  Chat with unrestricted AI models. Multiple models available for different use cases.
-                </p>
-              </div>
-            </Card>
-          </Link>
+        {/* Sign In CTA - Show only when not authenticated */}
+        {!loading && !user && (
+          <div className="w-full max-w-2xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 border border-blue-500/20 rounded-lg p-8 mb-12 text-center">
+            <h2 className="text-2xl font-semibold mb-2">Get Started</h2>
+            <p className="text-muted-foreground mb-6">
+              Sign in to access AI-powered text, image, and video generation
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button size="lg" asChild>
+                <Link href="/auth/signin">
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Sign In
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/auth/signup">Create Account</Link>
+              </Button>
+            </div>
+          </div>
+        )}
 
-          <Link href="/image" className="block group">
-            <Card className="p-6 h-full transition-colors hover:border-primary">
-              <div className="space-y-2">
-                <ImageIcon className="h-10 w-10 text-purple-500" />
-                <h3 className="text-xl font-semibold">Image Generation</h3>
-                <p className="text-sm text-muted-foreground">
-                  Create images with multiple AI models. Stable Diffusion and more.
-                </p>
-              </div>
-            </Card>
-          </Link>
+        {/* Feature Grid - Show only when authenticated */}
+        {!loading && user && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-12">
+            <Link href="/chat" className="block group">
+              <Card className="p-6 h-full transition-colors hover:border-primary">
+                <div className="space-y-2">
+                  <MessageCircle className="h-10 w-10 text-blue-500" />
+                  <h3 className="text-xl font-semibold">Text Generation</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Chat with unrestricted AI models. Multiple models available for different use cases.
+                  </p>
+                </div>
+              </Card>
+            </Link>
 
-          <Link href="/video" className="block group">
-            <Card className="p-6 h-full transition-colors hover:border-primary">
-              <div className="space-y-2">
-                <Film className="h-10 w-10 text-green-500" />
-                <h3 className="text-xl font-semibold">Video Generation</h3>
-                <p className="text-sm text-muted-foreground">
-                  Generate short videos using Stable Video Diffusion. Self-hosted for unlimited use.
-                </p>
-              </div>
-            </Card>
-          </Link>
-        </div>
+            <Link href="/image" className="block group">
+              <Card className="p-6 h-full transition-colors hover:border-primary">
+                <div className="space-y-2">
+                  <ImageIcon className="h-10 w-10 text-purple-500" />
+                  <h3 className="text-xl font-semibold">Image Generation</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create images with multiple AI models. Stable Diffusion and more.
+                  </p>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/video" className="block group">
+              <Card className="p-6 h-full transition-colors hover:border-primary">
+                <div className="space-y-2">
+                  <Film className="h-10 w-10 text-green-500" />
+                  <h3 className="text-xl font-semibold">Video Generation</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Generate short videos using Stable Video Diffusion. Self-hosted for unlimited use.
+                  </p>
+                </div>
+              </Card>
+            </Link>
+          </div>
+        )}
 
         {/* Features List */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
