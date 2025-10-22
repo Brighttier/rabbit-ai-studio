@@ -1,8 +1,8 @@
 # 🚀 GCP GPU Spot Instance Setup Guide
 ## Rabbit AI Studio - Self-Hosted Uncensored AI Models
 
-**Budget:** $150/month
-**Total Cost:** ~$125/month (GPU VM) + $20/month (Firebase) = **$145/month** ✅
+**Budget:** $200/month
+**Total Cost:** ~$170/month (GPU VM) + $20/month (Firebase) = **$190/month** ✅
 
 ---
 
@@ -13,7 +13,7 @@ You'll set up:
 - **Image Models** (4): SDXL, Realistic Vision, ChilloutMix, DreamShaper → Automatic1111
 - **Video Models** (3): Stable Video Diffusion → ComfyUI
 
-All running on a single **NVIDIA T4 GPU spot instance** in `us-central1`.
+All running on a single **NVIDIA L4 GPU spot instance** in `us-west1-b` (Oregon).
 
 ---
 
@@ -25,12 +25,12 @@ All running on a single **NVIDIA T4 GPU spot instance** in `us-central1`.
 # Set your project
 gcloud config set project tanzen-186b4
 
-# Create GPU spot instance
+# Create GPU spot instance (L4 GPU - 24GB VRAM)
 gcloud compute instances create rabbit-ai-gpu \
   --project=tanzen-186b4 \
-  --zone=us-central1-a \
-  --machine-type=n1-standard-4 \
-  --accelerator=type=nvidia-tesla-t4,count=1 \
+  --zone=us-west1-b \
+  --machine-type=g2-standard-4 \
+  --accelerator=type=nvidia-l4,count=1 \
   --provisioning-model=SPOT \
   --instance-termination-action=STOP \
   --maintenance-policy=TERMINATE \
@@ -42,7 +42,8 @@ gcloud compute instances create rabbit-ai-gpu \
   --tags=ai-server \
   --scopes=https://www.googleapis.com/auth/cloud-platform
 
-# Cost: ~$108/month + $20 storage = $128/month
+# Cost: ~$150/month (spot) + $20 storage = $170/month
+# Performance: 2x faster than T4, 24GB VRAM (vs 16GB)
 ```
 
 ### **1.2 Configure Firewall**
@@ -80,7 +81,7 @@ gcloud compute addresses describe rabbit-ai-ip --region=us-central1
 ```bash
 gcloud compute ssh rabbit-ai-gpu \
   --project=tanzen-186b4 \
-  --zone=us-central1-a
+  --zone=us-west1-b
 ```
 
 ### **2.2 Verify GPU**
@@ -96,9 +97,10 @@ nvidia-smi
 # | GPU  Name        TCC/WDDM | Bus-Id        Disp.A | Volatile Uncorr. ECC |
 # | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
 # |===============================+======================+======================|
-# |   0  Tesla T4            Off  | 00000000:00:04.0 Off |                    0 |
-# | N/A   40C    P0    26W /  70W |      0MiB / 15109MiB |      0%      Default |
+# |   0  NVIDIA L4           Off  | 00000000:00:04.0 Off |                    0 |
+# | N/A   40C    P0    30W /  72W |      0MiB / 23034MiB |      0%      Default |
 # +-------------------------------+----------------------+----------------------+
+# 24GB VRAM - 50% more than T4!
 ```
 
 If driver not installed:
@@ -109,7 +111,7 @@ sudo apt install -y nvidia-driver-535 nvidia-utils-535
 sudo reboot
 
 # Wait 2 minutes, then SSH back in
-gcloud compute ssh rabbit-ai-gpu --project=tanzen-186b4 --zone=us-central1-a
+gcloud compute ssh rabbit-ai-gpu --project=tanzen-186b4 --zone=us-west1-b
 ```
 
 ---
@@ -412,10 +414,10 @@ gcloud compute instances add-metadata rabbit-ai-gpu \
 # Get external IP
 gcloud compute instances describe rabbit-ai-gpu \
   --project=tanzen-186b4 \
-  --zone=us-central1-a \
+  --zone=us-west1-b \
   --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
 
-# Note this IP (e.g., 34.123.45.67)
+# Current IP: 34.168.113.13
 ```
 
 Your services will be available at:
@@ -448,16 +450,21 @@ Replace `YOUR_SERVER_IP` with the actual IP from Step 7.
 
 | Service | Cost/Month |
 |---------|------------|
-| n1-standard-4 (spot) | $29 |
-| NVIDIA T4 GPU (spot) | $79 |
+| g2-standard-4 (spot) | $50 |
+| NVIDIA L4 GPU (spot) | $100 |
 | 150GB SSD Storage | $20 |
-| **Compute Total** | **$128** |
-| Firebase Services | $15 |
-| **GRAND TOTAL** | **$143/month** ✅ |
+| **Compute Total** | **$170** |
+| Firebase Services | $20 |
+| **GRAND TOTAL** | **$190/month** ✅ |
+
+**Performance Upgrade:**
+- **VRAM:** 24GB (vs 16GB on T4) = +50% memory
+- **Speed:** 2x faster text/image/video generation
+- **Cost increase:** Only +$25/month (+17%)
 
 **Savings vs Regular Pricing:**
-- Regular GPU VM: $390/month
-- **You Save: $247/month (63% discount)** 🎉
+- Regular L4 GPU VM: $510/month
+- **You Save: $340/month (67% discount)** 🎉
 
 ---
 
@@ -467,7 +474,7 @@ Replace `YOUR_SERVER_IP` with the actual IP from Step 7.
 
 ```bash
 # SSH into VM
-gcloud compute ssh rabbit-ai-gpu --project=tanzen-186b4 --zone=us-central1-a
+gcloud compute ssh rabbit-ai-gpu --project=tanzen-186b4 --zone=us-west1-b
 
 # Check all services
 sudo systemctl status ollama

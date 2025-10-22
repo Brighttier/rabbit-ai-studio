@@ -4,24 +4,24 @@
 ### 📊 Cost Breakdown
 
 **Expected Monthly Costs:**
-- GPU Instance (Spot): ~$108/month
-  - N1-standard-4: $0.14/hour
-  - NVIDIA T4 GPU: $0.11/hour
+- GPU Instance (Spot): ~$150/month
+  - G2-standard-4: $0.20/hour
+  - NVIDIA L4 GPU: $0.20/hour
   - Spot discount: ~70% off
-  - Final hourly: ~$0.15/hour
+  - Final hourly: ~$0.21/hour
 - Storage (150GB): ~$20/month
 - Network: ~$5-10/month
-**Total Expected: ~$145/month**
+**Total Expected: ~$190/month**
 
 ### 🚨 Critical Cost Controls
 
 1. **Immediate Setup After Approval**
 ```bash
-# Set automatic shutdown if costs exceed $150
+# Set automatic shutdown if costs exceed $200
 gcloud beta billing budgets create \
   --billing-account=YOUR_BILLING_ACCOUNT_ID \
   --display-name="GPU-Cost-Control" \
-  --budget-amount=150 \
+  --budget-amount=200 \
   --threshold-rules=percent=90,percent=100 \
   --threshold-rule-trigger-email=true
 
@@ -48,7 +48,7 @@ nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv >> 
 ```
 
 3. **Automatic Shutdown Triggers**
-- If costs reach 90% of budget ($135)
+- If costs reach 90% of budget ($180)
 - If GPU utilization < 10% for 2 hours
 - If instance running > 12 hours continuously
 
@@ -158,19 +158,19 @@ gcloud monitoring dashboards create \
 ### ⚠️ Critical Thresholds
 
 1. **Daily Limits**
-   - Max cost: $5/day
-   - GPU hours: 16/day
+   - Max cost: $7/day
+   - GPU hours: 20/day
    - Network: 10GB/day
 
 2. **Weekly Limits**
-   - Max cost: $35/week
+   - Max cost: $45/week
    - Average GPU usage: 70%
    - Storage growth: 5GB/week
 
 3. **Monthly Targets**
-   - Total budget: $150
-   - Reserved: $15 buffer
-   - Emergency fund: $20
+   - Total budget: $200
+   - Reserved: $20 buffer
+   - Emergency fund: $30
 
 ### 📞 Support Contacts
 

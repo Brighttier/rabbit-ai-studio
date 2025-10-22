@@ -52,11 +52,11 @@ env:
   - variable: REPLICATE_API_URL
     value: https://api.replicate.com/v1
   - variable: OLLAMA_BASE_URL
-    value: http://35.188.180.248:11434
+    value: http://34.168.113.13:11434
   - variable: AUTOMATIC1111_BASE_URL
-    value: http://35.188.180.248:7861
+    value: http://34.168.113.13:7860
   - variable: COMFYUI_BASE_URL
-    value: http://35.188.180.248:8188
+    value: http://34.168.113.13:8188
 
   # API Keys - From Secret Manager
   - variable: HUGGINGFACE_API_KEY
