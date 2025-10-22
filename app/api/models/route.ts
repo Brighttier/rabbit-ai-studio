@@ -49,6 +49,34 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const router = getModelRouter();
   const models = await router.listModels(filter);
 
+  // Auto-seed if database is empty and no filters applied
+  if (models.length === 0 && !type && !provider && enabledParam === null) {
+    console.log('Database is empty, auto-seeding models...');
+    try {
+      // Call the seed endpoint internally
+      const seedResponse = await fetch(new URL('/api/admin/seed-models', request.url), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (seedResponse.ok) {
+        console.log('Auto-seed successful, fetching models again...');
+        // Fetch models again after seeding
+        const seededModels = await router.listModels(filter);
+        return NextResponse.json({
+          success: true,
+          data: seededModels,
+          autoSeeded: true,
+        } as ApiResponse<Model[]>);
+      }
+    } catch (error) {
+      console.error('Auto-seed failed:', error);
+      // Continue with empty array if auto-seed fails
+    }
+  }
+
   const response: ApiResponse<Model[]> = {
     success: true,
     data: models,
