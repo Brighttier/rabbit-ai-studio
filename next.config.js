@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path')
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -19,6 +21,15 @@ const nextConfig = {
   output: 'standalone',
   // Skip build errors for now - Firebase will handle them
   skipTrailingSlashRedirect: true,
+
+  // Webpack configuration for TypeScript path aliases
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, './'),
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig
