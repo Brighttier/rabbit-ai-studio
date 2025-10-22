@@ -1,7 +1,6 @@
 'use client';
 
 import { PageLayout } from '@/components/PageLayout';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
   MessageCircle,
@@ -10,8 +9,7 @@ import {
   Zap,
   Lock,
   Server,
-  AlertTriangle,
-  LogIn
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/firebase/auth';
@@ -45,27 +43,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* Sign In CTA - Show only when not authenticated */}
-        {!loading && !user && (
-          <div className="w-full max-w-2xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 border border-blue-500/20 rounded-lg p-8 mb-12 text-center">
-            <h2 className="text-2xl font-semibold mb-2">Get Started</h2>
-            <p className="text-muted-foreground mb-6">
-              Sign in to access AI-powered text, image, and video generation
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link href="/auth/signin">
-                  <LogIn className="mr-2 h-5 w-5" />
-                  Sign In
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/auth/signup">Create Account</Link>
-              </Button>
-            </div>
-          </div>
-        )}
 
         {/* Feature Grid - Show only when authenticated */}
         {!loading && user && (
