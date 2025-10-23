@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requireAuth } from '@/lib/middleware/auth';
 import { withErrorHandling } from '@/lib/middleware/errorHandler';
+import { InstancesClient } from '@google-cloud/compute';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,16 @@ export const runtime = 'nodejs';
 const GPU_SERVER_INSTANCE = 'rabbit-ai-gpu';
 const GPU_SERVER_ZONE = 'us-west1-b';
 const GCP_PROJECT_ID = 'tanzen-186b4';
+
+// Initialize Compute Engine client
+let computeClient: InstancesClient | null = null;
+
+function getComputeClient(): InstancesClient {
+  if (!computeClient) {
+    computeClient = new InstancesClient();
+  }
+  return computeClient;
+}
 
 /**
  * GET /api/admin/gpu-server
@@ -20,14 +31,16 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   await requireAuth(request);
 
   try {
-    const { execSync } = require('child_process');
+    const client = getComputeClient();
 
-    // Get instance status
-    const cmd = `/usr/local/bin/gcloud compute instances describe ${GPU_SERVER_INSTANCE} --zone=${GPU_SERVER_ZONE} --project=${GCP_PROJECT_ID} --format=json`;
-    const output = execSync(cmd, { encoding: 'utf-8' });
-    const instance = JSON.parse(output);
+    // Get instance details
+    const [instance] = await client.get({
+      project: GCP_PROJECT_ID,
+      zone: GPU_SERVER_ZONE,
+      instance: GPU_SERVER_INSTANCE,
+    });
 
-    const status = instance.status; // RUNNING, TERMINATED, etc.
+    const status = instance.status || 'UNKNOWN'; // RUNNING, TERMINATED, STOPPED, etc.
     const externalIP = instance.networkInterfaces?.[0]?.accessConfigs?.[0]?.natIP || 'N/A';
     const internalIP = instance.networkInterfaces?.[0]?.networkIP || 'N/A';
 
@@ -90,6 +103,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       {
         success: false,
         error: {
+          code: 'GPU_SERVER_ERROR',
           message: error.message || 'Failed to get GPU server status',
         },
       },
@@ -115,6 +129,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       {
         success: false,
         error: {
+          code: 'INVALID_ACTION',
           message: 'Invalid action. Must be "start" or "stop"',
         },
       },
@@ -123,11 +138,23 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
 
   try {
-    const { execSync } = require('child_process');
+    const client = getComputeClient();
 
-    const cmd = `/usr/local/bin/gcloud compute instances ${action} ${GPU_SERVER_INSTANCE} --zone=${GPU_SERVER_ZONE} --project=${GCP_PROJECT_ID}`;
-
-    execSync(cmd, { encoding: 'utf-8' });
+    if (action === 'start') {
+      // Start the instance
+      await client.start({
+        project: GCP_PROJECT_ID,
+        zone: GPU_SERVER_ZONE,
+        instance: GPU_SERVER_INSTANCE,
+      });
+    } else {
+      // Stop the instance
+      await client.stop({
+        project: GCP_PROJECT_ID,
+        zone: GPU_SERVER_ZONE,
+        instance: GPU_SERVER_INSTANCE,
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -143,6 +170,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       {
         success: false,
         error: {
+          code: 'GPU_SERVER_OPERATION_FAILED',
           message: error.message || `Failed to ${action} GPU server`,
         },
       },
