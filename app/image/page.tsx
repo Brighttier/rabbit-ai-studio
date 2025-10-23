@@ -8,6 +8,7 @@ import { ImageGenerationForm, ImageConfig } from '@/components/ImageGenerationFo
 import { ImageGallery } from '@/components/ImageGallery';
 import { GeneratedImage } from '@/components/ImageCard';
 import { Button } from '@/components/ui/button';
+import { GPUServerStatusBanner } from '@/components/GPUServerStatusBanner';
 import {
   generateImage,
   downloadImage,
@@ -202,6 +203,15 @@ export default function ImageGenerationPage() {
           </div>
         </div>
       </div>
+
+      {/* Server Status Indicator */}
+      {token && (
+        <div className="border-b border-border bg-card px-4 py-2">
+          <div className="max-w-7xl mx-auto">
+            <GPUServerStatusBanner token={token} userRole={userRole} compact={true} />
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-4">

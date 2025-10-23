@@ -13,9 +13,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/firebase/auth';
+import { GPUServerStatusBanner } from '@/components/GPUServerStatusBanner';
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, token, userRole } = useAuth();
 
   return (
     <PageLayout>
@@ -29,6 +30,13 @@ export default function Home() {
             Multi-Model AI Platform for Text, Image & Video Generation
           </p>
         </div>
+
+        {/* GPU Server Status Banner */}
+        {!loading && user && (
+          <div className="mb-8">
+            <GPUServerStatusBanner token={token || undefined} userRole={userRole} />
+          </div>
+        )}
 
         {/* Warning Banner */}
         <div className="w-full max-w-2xl bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-12">

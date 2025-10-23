@@ -6,6 +6,7 @@ import { ChatMessage, StreamingMessage } from '@/components/ChatMessage';
 import { ChatInput } from '@/components/ChatInput';
 import { ChatSettings, ChatConfig } from '@/components/ChatSettings';
 import { Button } from '@/components/ui/button';
+import { GPUServerStatusBanner } from '@/components/GPUServerStatusBanner';
 import {
   createSession,
   generateSessionTitle,
@@ -411,6 +412,15 @@ export default function ChatPage() {
         token={token || undefined}
         disabled={isLoading || isStreaming}
       />
+
+      {/* Server Status Indicator */}
+      {token && (
+        <div className="border-b border-border bg-card px-4 py-2">
+          <div className="max-w-4xl mx-auto">
+            <GPUServerStatusBanner token={token} userRole={userRole} compact={true} />
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">

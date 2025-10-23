@@ -13,10 +13,11 @@ const GCP_PROJECT_ID = 'tanzen-186b4';
 /**
  * GET /api/admin/gpu-server
  * Get GPU server status
+ * Note: Changed to requireAuth (from requireAdmin) so all authenticated users can check status
  */
 export const GET = withErrorHandling(async (request: NextRequest) => {
-  // Require admin auth
-  await requireAdmin(request);
+  // Require authentication (any authenticated user can check status)
+  await requireAuth(request);
 
   try {
     const { execSync } = require('child_process');
