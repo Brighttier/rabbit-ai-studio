@@ -37,6 +37,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       {
         success: false,
         error: {
+          code: 'FAILED_TO_LIST_USERS',
           message: error.message || 'Failed to list users',
         },
       },
@@ -130,6 +131,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         {
           success: false,
           error: {
+            code: 'EMAIL_ALREADY_EXISTS',
             message: 'A user with this email already exists',
           },
         },
@@ -141,6 +143,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       {
         success: false,
         error: {
+          code: 'FAILED_TO_CREATE_USER',
           message: error.message || 'Failed to create user',
         },
       },
