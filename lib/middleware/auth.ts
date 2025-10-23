@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAdminAuth, getAdminFirestore } from '../firebase/adminApp';
 import { User, UserRole } from '../types';
+import { verifyApiKey, isValidApiKeyFormat } from '../apiKeys';
 
 /**
  * Authentication Error
@@ -82,6 +83,7 @@ export function isAdmin(user: User): boolean {
 
 /**
  * Authenticate request and return user
+ * Supports both Firebase ID tokens and API keys
  */
 export async function authenticateRequest(request: NextRequest): Promise<User> {
   // Extract token
@@ -91,42 +93,69 @@ export async function authenticateRequest(request: NextRequest): Promise<User> {
     throw new AuthError('Missing authentication token');
   }
 
-  // Verify token
-  const decodedToken = await verifyAuthToken(token);
+  // Check if token is an API key (starts with rabbit_sk_)
+  if (isValidApiKeyFormat(token)) {
+    // Verify API key
+    const apiKey = await verifyApiKey(token);
 
-  // Get user data
-  let user = await getUserData(decodedToken.uid);
-
-  // Auto-create user document if it doesn't exist
-  if (!user) {
-    console.log(`User document not found for UID ${decodedToken.uid}, auto-creating...`);
-
-    try {
-      const db = getAdminFirestore();
-      const now = new Date();
-
-      const newUserData: User = {
-        uid: decodedToken.uid,
-        email: decodedToken.email || '',
-        displayName: decodedToken.name || decodedToken.email?.split('@')[0] || 'User',
-        photoURL: decodedToken.picture,
-        role: 'user', // Default role, can be upgraded to admin manually
-        createdAt: now,
-        updatedAt: now,
-      };
-
-      await db.collection('users').doc(decodedToken.uid).set(newUserData);
-
-      console.log(`Successfully auto-created user document for ${decodedToken.uid} with role: user`);
-
-      user = newUserData;
-    } catch (error) {
-      console.error('Failed to auto-create user document:', error);
-      throw new AuthError('User not found and failed to create user document', 500);
+    if (!apiKey) {
+      throw new AuthError('Invalid or expired API key');
     }
+
+    // Get user data for API key owner
+    const user = await getUserData(apiKey.userId);
+
+    if (!user) {
+      throw new AuthError('API key owner not found');
+    }
+
+    return user;
   }
 
-  return user;
+  // Otherwise, treat as Firebase ID token
+  try {
+    const decodedToken = await verifyAuthToken(token);
+
+    // Get user data
+    let user = await getUserData(decodedToken.uid);
+
+    // Auto-create user document if it doesn't exist
+    if (!user) {
+      console.log(`User document not found for UID ${decodedToken.uid}, auto-creating...`);
+
+      try {
+        const db = getAdminFirestore();
+        const now = new Date();
+
+        const newUserData: User = {
+          uid: decodedToken.uid,
+          email: decodedToken.email || '',
+          displayName: decodedToken.name || decodedToken.email?.split('@')[0] || 'User',
+          photoURL: decodedToken.picture,
+          role: 'user', // Default role, can be upgraded to admin manually
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        await db.collection('users').doc(decodedToken.uid).set(newUserData);
+
+        console.log(`Successfully auto-created user document for ${decodedToken.uid} with role: user`);
+
+        user = newUserData;
+      } catch (error) {
+        console.error('Failed to auto-create user document:', error);
+        throw new AuthError('User not found and failed to create user document', 500);
+      }
+    }
+
+    return user;
+  } catch (error: any) {
+    // If Firebase token verification fails, throw appropriate error
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    throw new AuthError(`Invalid authentication: ${error.message}`);
+  }
 }
 
 /**

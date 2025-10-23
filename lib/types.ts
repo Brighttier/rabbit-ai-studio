@@ -177,6 +177,19 @@ export interface ApiResponse<T = any> {
   };
 }
 
+// API Key Types
+export interface ApiKey {
+  id: string;
+  keyHash: string; // SHA-256 hash of the actual API key
+  userId: string; // Owner of the API key
+  name: string; // Descriptive name for the key
+  prefix: string; // First 8 chars of key (for display: rabbit_sk_XXXXXX...)
+  createdAt: Date;
+  lastUsedAt: Date | null;
+  expiresAt: Date | null; // Optional expiration
+  enabled: boolean;
+}
+
 // Log Types
 export interface SystemLog {
   id: string;

@@ -74,6 +74,14 @@ service cloud.firestore {
       }
     }
 
+    // API Keys collection - admin only
+    // Note: API keys are NOT readable via client SDK for security
+    // All API key operations go through backend API routes
+    match /apiKeys/{keyId} {
+      // Only admins can read/write API keys
+      allow read, write: if isAdmin();
+    }
+
     // System logs - admin only
     match /logs/{logId} {
       allow read, write: if isAdmin();
