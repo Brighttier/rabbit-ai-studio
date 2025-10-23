@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/middleware/auth';
+import { requireAdmin, requireAuth } from '@/lib/middleware/auth';
 import { withErrorHandling } from '@/lib/middleware/errorHandler';
 
 // Force dynamic rendering

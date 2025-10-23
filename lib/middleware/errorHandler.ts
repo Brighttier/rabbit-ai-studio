@@ -3,7 +3,7 @@ import { ApiResponse } from '../types';
 import { ProviderError } from '../providers/base';
 import { AuthError } from './auth';
 
-type RouteHandler = (request: NextRequest) => Promise<Response | NextResponse>;
+type RouteHandler = (request: NextRequest, context?: any) => Promise<Response | NextResponse>;
 
 /**
  * Error codes for API responses
@@ -247,9 +247,9 @@ export function validateRequest<T>(
  * Async error wrapper for API routes
  */
 export function withErrorHandling(handler: RouteHandler) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+  return async (request: NextRequest, context?: any): Promise<NextResponse> => {
     try {
-      const response = await handler(request);
+      const response = await handler(request, context);
       if (response instanceof NextResponse) {
         return response;
       }

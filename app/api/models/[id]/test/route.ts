@@ -131,6 +131,7 @@ export const POST = withErrorHandling(async (
     const response: ApiResponse<any> = {
       success: false,
       error: {
+        code: 'MODEL_TEST_FAILED',
         message: err.message || 'Model test failed',
       },
     };

@@ -34,7 +34,7 @@ export default function Home() {
         {/* GPU Server Status Banner */}
         {!loading && user && (
           <div className="mb-8">
-            <GPUServerStatusBanner token={token || undefined} userRole={userRole} />
+            <GPUServerStatusBanner token={token || undefined} userRole={userRole || undefined} />
           </div>
         )}
 
