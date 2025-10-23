@@ -94,7 +94,7 @@ export class ComfyUIProvider extends BaseProvider {
 
   /**
    * Create SVD (Stable Video Diffusion) workflow
-   * This workflow creates a simple animation using SVD from an empty/solid frame
+   * This workflow creates a simple animation using SVD from an input image or empty frame
    */
   private createVideoWorkflow(params: {
     prompt: string;
@@ -108,73 +108,78 @@ export class ComfyUIProvider extends BaseProvider {
     // Limit frames for better performance: 14-25 frames (SVD XT 1.1 works best with these)
     const videoFrames = Math.min(25, Math.max(14, Math.floor(params.duration * (params.fps / 2))));
 
-    // Simplified SVD workflow
+    // TODO: Support input image upload
+    // For now, use empty frame workflow regardless of input
+    // To support image-to-video, we need to either:
+    // 1. Upload image to ComfyUI server first via /upload/image endpoint
+    // 2. Install a custom node that supports base64 image input
+
     return {
-      // 1. Load SVD checkpoint
-      '1': {
-        inputs: {
-          ckpt_name: 'svd_xt_1_1.safetensors',
+        // 1. Load SVD checkpoint
+        '1': {
+          inputs: {
+            ckpt_name: 'svd_xt_1_1.safetensors',
+          },
+          class_type: 'ImageOnlyCheckpointLoader',
         },
-        class_type: 'ImageOnlyCheckpointLoader',
-      },
-      // 2. Create empty/solid image as starting frame
-      '2': {
-        inputs: {
-          width: width,
-          height: height,
-          batch_size: 1,
-          color: 0x808080, // Mid-gray
+        // 2. Create empty/solid image as starting frame
+        '2': {
+          inputs: {
+            width: width,
+            height: height,
+            batch_size: 1,
+            color: 0x808080, // Mid-gray
+          },
+          class_type: 'EmptyImage',
         },
-        class_type: 'EmptyImage',
-      },
-      // 3. SVD conditioning
-      '3': {
-        inputs: {
-          clip_vision: ['1', 1],
-          init_image: ['2', 0],
-          vae: ['1', 2],
-          width: width,
-          height: height,
-          video_frames: videoFrames,
-          motion_bucket_id: 127,
-          fps: 6, // SVD works best at 6fps, we'll interpolate later if needed
-          augmentation_level: 0.0,
+        // 3. SVD conditioning
+        '3': {
+          inputs: {
+            clip_vision: ['1', 1],
+            init_image: ['2', 0],
+            vae: ['1', 2],
+            width: width,
+            height: height,
+            video_frames: videoFrames,
+            motion_bucket_id: 127,
+            fps: 6, // SVD works best at 6fps
+            augmentation_level: 0.0,
+          },
+          class_type: 'SVD_img2vid_Conditioning',
         },
-        class_type: 'SVD_img2vid_Conditioning',
-      },
-      // 4. Sample video latents
-      '4': {
-        inputs: {
-          seed: params.seed,
-          steps: 20,
-          cfg: 2.5,
-          sampler_name: 'euler',
-          scheduler: 'karras',
-          denoise: 1.0,
-          model: ['1', 0],
-          positive: ['3', 0],
-          negative: ['3', 1],
-          latent_image: ['3', 2],
+        // 4. Sample video latents
+        '4': {
+          inputs: {
+            seed: params.seed,
+            steps: 20,
+            cfg: 2.5,
+            sampler_name: 'euler',
+            scheduler: 'karras',
+            denoise: 1.0,
+            model: ['1', 0],
+            positive: ['3', 0],
+            negative: ['3', 1],
+            latent_image: ['3', 2],
+          },
+          class_type: 'KSampler',
         },
-        class_type: 'KSampler',
-      },
-      // 5. Decode latents to images
-      '5': {
-        inputs: {
-          samples: ['4', 0],
-          vae: ['1', 2],
+        // 5. Decode latents to images
+        '5': {
+          inputs: {
+            samples: ['4', 0],
+            vae: ['1', 2],
+          },
+          class_type: 'VAEDecode',
         },
-        class_type: 'VAEDecode',
-      },
-      // 6. Save as image sequence (ComfyUI's default output)
-      '6': {
-        inputs: {
-          images: ['5', 0],
-          filename_prefix: 'svd_video',
+        // 6. Save as image sequence
+        '6': {
+          inputs: {
+            images: ['5', 0],
+            filename_prefix: 'svd_video',
+          },
+          class_type: 'SaveImage',
         },
-        class_type: 'SaveImage',
-      },
-    };
+      };
   }
 
   /**

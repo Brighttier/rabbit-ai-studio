@@ -243,6 +243,48 @@ export default function VideoGenerationPage() {
                   />
                 </div>
 
+                {/* Input Image (Optional) */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Input Image (Optional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setConfig({ ...config, inputImage: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                    disabled={isGenerating}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload an image to animate it (image-to-video) - Coming Soon!
+                  </p>
+                  {config.inputImage && (
+                    <div className="mt-2 relative">
+                      <img
+                        src={config.inputImage}
+                        alt="Input preview"
+                        className="w-full h-32 object-cover rounded-md"
+                      />
+                      <button
+                        onClick={() => setConfig({ ...config, inputImage: undefined })}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                        disabled={isGenerating}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Duration */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-foreground mb-2">
