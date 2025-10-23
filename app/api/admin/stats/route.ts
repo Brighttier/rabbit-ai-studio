@@ -24,16 +24,43 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const [
     usersSnap,
     sessionsSnap,
-    imagesSnap,
-    messagesSnap,
     modelsSnap
   ] = await Promise.all([
     db.collection('users').count().get(),
     db.collection('sessions').count().get(),
-    db.collection('images').count().get(),
-    db.collection('messages').count().get(),
     db.collection('models').where('enabled', '==', true).count().get(),
   ]);
+
+  // Messages are in subcollections, we'll need to aggregate differently
+  // For now, use session count as a proxy for message activity
+  let totalMessages = 0;
+  let totalImages = 0;
+
+  try {
+    // Try to get a sample of sessions to estimate message count
+    const recentSessions = await db.collection('sessions')
+      .orderBy('updatedAt', 'desc')
+      .limit(100)
+      .get();
+
+    // This is an approximation - in production you'd want to aggregate this data
+    totalMessages = recentSessions.docs.reduce((sum, doc) => {
+      const metadata = doc.data().metadata;
+      return sum + (metadata?.messageCount || 0);
+    }, 0);
+  } catch (error) {
+    console.error('Error getting message counts:', error);
+    // Continue with 0 if this fails
+  }
+
+  try {
+    // Try to count images collection if it exists
+    const imagesSnap = await db.collection('images').count().get();
+    totalImages = imagesSnap.data().count;
+  } catch (error) {
+    console.error('Error getting image counts:', error);
+    // Continue with 0 if collection doesn't exist
+  }
 
   // Get API health by attempting to fetch models
   const modelResponse = await fetch(`${request.nextUrl.origin}/api/models`, {
@@ -62,15 +89,33 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const recentMessagesSnap = await db.collection('messages')
-    .where('createdAt', '>=', weekAgo)
-    .count()
-    .get();
+  let recentMessageCount = 0;
+  let recentImageCount = 0;
 
-  const recentImagesSnap = await db.collection('images')
-    .where('createdAt', '>=', weekAgo)
-    .count()
-    .get();
+  try {
+    // Get recent sessions and sum up their message counts
+    const recentSessionsSnap = await db.collection('sessions')
+      .where('updatedAt', '>=', weekAgo)
+      .get();
+
+    recentMessageCount = recentSessionsSnap.docs.reduce((sum, doc) => {
+      const metadata = doc.data().metadata;
+      return sum + (metadata?.messageCount || 0);
+    }, 0);
+  } catch (error) {
+    console.error('Error getting recent message counts:', error);
+  }
+
+  try {
+    // Try to count recent images if collection exists
+    const recentImagesSnap = await db.collection('images')
+      .where('createdAt', '>=', weekAgo)
+      .count()
+      .get();
+    recentImageCount = recentImagesSnap.data().count;
+  } catch (error) {
+    console.error('Error getting recent image counts:', error);
+  }
 
   // Return stats
   return NextResponse.json({
@@ -79,8 +124,8 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       systemStats: {
         totalUsers: usersSnap.data().count,
         totalSessions: sessionsSnap.data().count,
-        totalImages: imagesSnap.data().count,
-        totalMessages: messagesSnap.data().count,
+        totalImages: totalImages,
+        totalMessages: totalMessages,
         activeModels: modelsSnap.data().count,
         apiHealth: {
           text: textResponse.ok,
@@ -89,8 +134,8 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
         },
       },
       usageStats: {
-        textGenerations: recentMessagesSnap.data().count,
-        imageGenerations: recentImagesSnap.data().count,
+        textGenerations: recentMessageCount,
+        imageGenerations: recentImageCount,
         totalTokens: 0, // TODO: Implement token counting
         averageResponseTime: 0, // TODO: Implement response time tracking
       }
