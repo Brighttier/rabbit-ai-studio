@@ -20,10 +20,16 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     const db = getAdminFirestore();
     const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
 
-    const users: User[] = usersSnapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data(),
-    } as User));
+    const users: User[] = usersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        uid: doc.id,
+        ...data,
+        // Convert Firestore Timestamps to ISO strings for JSON serialization
+        createdAt: data.createdAt?.toDate?.() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+      } as User;
+    });
 
     const response: ApiResponse<User[]> = {
       success: true,
@@ -111,7 +117,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       role: role as UserRole,
       createdAt: now,
       updatedAt: now,
-      photoURL: userRecord.photoURL,
+      ...(userRecord.photoURL && { photoURL: userRecord.photoURL }),
     };
 
     await db.collection('users').doc(userRecord.uid).set(userData);
