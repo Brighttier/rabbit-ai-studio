@@ -311,11 +311,15 @@ export default function AdminDashboard() {
                   </div>
                 </Link>
 
-                <div className="rounded-lg border border-border bg-card p-6 hover:bg-accent transition-colors cursor-pointer opacity-50">
-                  <div className="text-3xl mb-2">👥</div>
-                  <div className="font-medium text-foreground mb-1">User Management</div>
-                  <div className="text-sm text-muted-foreground">Coming soon in Phase 6</div>
-                </div>
+                <Link href="/admin/users">
+                  <div className="rounded-lg border border-border bg-card p-6 hover:bg-accent transition-colors cursor-pointer">
+                    <div className="text-3xl mb-2">👥</div>
+                    <div className="font-medium text-foreground mb-1">User Management</div>
+                    <div className="text-sm text-muted-foreground">
+                      Create and manage user accounts
+                    </div>
+                  </div>
+                </Link>
 
                 <div className="rounded-lg border border-border bg-card p-6 hover:bg-accent transition-colors cursor-pointer opacity-50">
                   <div className="text-3xl mb-2">📊</div>

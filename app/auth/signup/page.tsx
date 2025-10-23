@@ -67,6 +67,20 @@ export default function SignUpPage() {
           <p className="text-muted-foreground mt-2">Join Rabbit AI Studio</p>
         </div>
 
+        {/* Warning Banner */}
+        <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-xl">⚠️</span>
+            <div className="text-sm">
+              <p className="font-medium text-yellow-500">Internal Application</p>
+              <p className="text-yellow-500/80 mt-1">
+                This is an internal application. Only authorized users created by administrators can access this system.
+                If you need access, please contact your system administrator.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Sign Up Form */}
         <div className="rounded-lg border border-border bg-card p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
