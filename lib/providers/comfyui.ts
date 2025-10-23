@@ -20,8 +20,9 @@ export class ComfyUIProvider extends BaseProvider {
 
   /**
    * Generate video using ComfyUI's API
-   * Note: This is a simplified implementation. ComfyUI uses a workflow-based system.
-   * For production, you should create specific workflows for your video models.
+   * Two-step process:
+   * 1. Generate image from prompt using Automatic1111
+   * 2. Animate that image using SVD in ComfyUI
    */
   async generateVideo(request: VideoGenerationRequest): Promise<VideoGenerationResponse> {
     const {
@@ -34,11 +35,26 @@ export class ComfyUIProvider extends BaseProvider {
     } = request;
 
     try {
-      // For now, we'll use the basic text-to-video workflow
-      // In production, you'd load a specific workflow JSON and populate it with parameters
+      let imageToAnimate = inputImage;
+
+      let uploadedImageName: string | undefined;
+
+      // Step 1: If no input image provided, generate one from the prompt
+      if (!imageToAnimate && prompt) {
+        console.log('Generating image from prompt:', prompt);
+        imageToAnimate = await this.generateImageFromPrompt(prompt, resolution, seed);
+      }
+
+      // Step 2: If we have an image (generated or uploaded), upload it to ComfyUI
+      if (imageToAnimate) {
+        console.log('Uploading image to ComfyUI...');
+        uploadedImageName = await this.uploadImageToComfyUI(imageToAnimate);
+      }
+
+      // Step 3: Create workflow with the uploaded image name (or empty frame if no image)
       const workflow = this.createVideoWorkflow({
         prompt,
-        inputImage,
+        uploadedImageName,
         duration,
         fps,
         resolution,
@@ -93,12 +109,115 @@ export class ComfyUIProvider extends BaseProvider {
   }
 
   /**
+   * Upload base64 image to ComfyUI server
+   * Returns the filename that can be used in LoadImage node
+   */
+  private async uploadImageToComfyUI(base64Image: string): Promise<string> {
+    try {
+      // Remove data URL prefix if present
+      const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+
+      // Convert base64 to buffer
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+
+      const filename = `svd_input_${Date.now()}.png`;
+
+      // Create form data using node's FormData (server-side only)
+      const {default: FormDataNode} = await import('form-data');
+      const formData = new FormDataNode();
+
+      formData.append('image', imageBuffer, {
+        filename: filename,
+        contentType: 'image/png',
+      });
+      formData.append('subfolder', 'svd_inputs');
+      formData.append('type', 'input');
+
+      // Upload to ComfyUI
+      const response = await fetch(`${this.baseURL}/upload/image`, {
+        method: 'POST',
+        // @ts-ignore - form-data is compatible with fetch
+        body: formData,
+        headers: formData.getHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Return the uploaded filename
+      return data.name || filename;
+    } catch (error: any) {
+      console.error('Failed to upload image to ComfyUI:', error);
+      throw new ProviderError(
+        `Failed to upload image: ${error.message}`,
+        this.name,
+        500
+      );
+    }
+  }
+
+  /**
+   * Generate an image from text prompt using Automatic1111
+   * This image will be used as the starting frame for SVD
+   */
+  private async generateImageFromPrompt(
+    prompt: string,
+    resolution: string,
+    seed?: number
+  ): Promise<string> {
+    const automatic1111URL = process.env.AUTOMATIC1111_BASE_URL || 'http://localhost:7860';
+    const { width, height } = this.parseResolution(resolution);
+
+    try {
+      const response = await fetch(`${automatic1111URL}/sdapi/v1/txt2img`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          negative_prompt: 'blurry, low quality, distorted',
+          steps: 20,
+          cfg_scale: 7.0,
+          width: width,
+          height: height,
+          seed: seed || -1,
+          sampler_name: 'DPM++ 2M Karras',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Automatic1111 API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.images || data.images.length === 0) {
+        throw new Error('No images generated');
+      }
+
+      // Return base64 image
+      return `data:image/png;base64,${data.images[0]}`;
+    } catch (error: any) {
+      console.error('Failed to generate image from prompt:', error);
+      throw new ProviderError(
+        `Failed to generate initial image: ${error.message}`,
+        this.name,
+        500
+      );
+    }
+  }
+
+  /**
    * Create SVD (Stable Video Diffusion) workflow
-   * This workflow creates a simple animation using SVD from an input image or empty frame
+   * This workflow animates an uploaded image or creates an empty frame
    */
   private createVideoWorkflow(params: {
     prompt: string;
-    inputImage?: string;
+    uploadedImageName?: string;
     duration: number;
     fps: number;
     resolution: string;
@@ -108,13 +227,74 @@ export class ComfyUIProvider extends BaseProvider {
     // Limit frames for better performance: 14-25 frames (SVD XT 1.1 works best with these)
     const videoFrames = Math.min(25, Math.max(14, Math.floor(params.duration * (params.fps / 2))));
 
-    // TODO: Support input image upload
-    // For now, use empty frame workflow regardless of input
-    // To support image-to-video, we need to either:
-    // 1. Upload image to ComfyUI server first via /upload/image endpoint
-    // 2. Install a custom node that supports base64 image input
-
-    return {
+    if (params.uploadedImageName) {
+      // Use uploaded image workflow
+      return {
+        // 1. Load SVD checkpoint
+        '1': {
+          inputs: {
+            ckpt_name: 'svd_xt_1_1.safetensors',
+          },
+          class_type: 'ImageOnlyCheckpointLoader',
+        },
+        // 2. Load uploaded image
+        '2': {
+          inputs: {
+            image: params.uploadedImageName,
+          },
+          class_type: 'LoadImage',
+        },
+        // 3. SVD conditioning
+        '3': {
+          inputs: {
+            clip_vision: ['1', 1],
+            init_image: ['2', 0],
+            vae: ['1', 2],
+            width: width,
+            height: height,
+            video_frames: videoFrames,
+            motion_bucket_id: 127,
+            fps: 6,
+            augmentation_level: 0.0,
+          },
+          class_type: 'SVD_img2vid_Conditioning',
+        },
+        // 4. Sample video latents
+        '4': {
+          inputs: {
+            seed: params.seed,
+            steps: 20,
+            cfg: 2.5,
+            sampler_name: 'euler',
+            scheduler: 'karras',
+            denoise: 1.0,
+            model: ['1', 0],
+            positive: ['3', 0],
+            negative: ['3', 1],
+            latent_image: ['3', 2],
+          },
+          class_type: 'KSampler',
+        },
+        // 5. Decode latents to images
+        '5': {
+          inputs: {
+            samples: ['4', 0],
+            vae: ['1', 2],
+          },
+          class_type: 'VAEDecode',
+        },
+        // 6. Save as image sequence
+        '6': {
+          inputs: {
+            images: ['5', 0],
+            filename_prefix: 'svd_video',
+          },
+          class_type: 'SaveImage',
+        },
+      };
+    } else {
+      // Use empty frame workflow
+      return {
         // 1. Load SVD checkpoint
         '1': {
           inputs: {
@@ -180,6 +360,7 @@ export class ComfyUIProvider extends BaseProvider {
           class_type: 'SaveImage',
         },
       };
+    }
   }
 
   /**
