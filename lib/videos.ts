@@ -77,7 +77,7 @@ export async function generateVideo(
 
     const data = await response.json();
 
-    if (!data.success || !data.videoUrl) {
+    if (!data.success || !data.data?.videoUrl) {
       return {
         success: false,
         error: data.error || { message: 'No video URL returned' },
@@ -87,14 +87,14 @@ export async function generateVideo(
     // Create video object
     const video: GeneratedVideo = {
       id: crypto.randomUUID(),
-      videoUrl: data.videoUrl,
+      videoUrl: data.data.videoUrl,
       prompt,
       modelId: options.modelId,
-      modelName: data.modelName,
-      provider: data.provider,
-      duration: options.duration,
-      fps: options.fps,
-      resolution: options.resolution,
+      modelName: data.data.modelName,
+      provider: data.data.provider,
+      duration: data.data.metadata?.duration || options.duration,
+      fps: data.data.metadata?.fps || options.fps,
+      resolution: data.data.metadata?.resolution || options.resolution,
       inputImage: options.inputImage,
       createdAt: new Date(),
     };

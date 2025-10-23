@@ -94,7 +94,7 @@ export class ComfyUIProvider extends BaseProvider {
 
   /**
    * Create SVD (Stable Video Diffusion) workflow
-   * This workflow creates a solid color image and animates it using SVD
+   * This workflow creates a simple animation using SVD from an empty/solid frame
    */
   private createVideoWorkflow(params: {
     prompt: string;
@@ -105,31 +105,29 @@ export class ComfyUIProvider extends BaseProvider {
     seed: number;
   }): any {
     const { width, height } = this.parseResolution(params.resolution);
-    // Limit max frames to improve performance
-    const videoFrames = Math.max(14, Math.min(20, Math.floor(params.duration * params.fps)));
+    // Limit frames for better performance: 14-25 frames (SVD XT 1.1 works best with these)
+    const videoFrames = Math.min(25, Math.max(14, Math.floor(params.duration * (params.fps / 2))));
 
-    // SVD workflow with optimized settings
+    // Simplified SVD workflow
     return {
-      // 1. Load SVD checkpoint with optimized settings
+      // 1. Load SVD checkpoint
       '1': {
         inputs: {
           ckpt_name: 'svd_xt_1_1.safetensors',
-          block_size: 16, // Optimize memory usage
-          bf16_mode: true // Use mixed precision for faster processing
         },
         class_type: 'ImageOnlyCheckpointLoader',
       },
-      // 2. Create a solid color image as initial frame
+      // 2. Create empty/solid image as starting frame
       '2': {
         inputs: {
           width: width,
           height: height,
           batch_size: 1,
-          color: 0x888888, // Gray color - will be animated by SVD
+          color: 0x808080, // Mid-gray
         },
         class_type: 'EmptyImage',
       },
-      // 3. SVD conditioning (image to video)
+      // 3. SVD conditioning
       '3': {
         inputs: {
           clip_vision: ['1', 1],
@@ -138,13 +136,13 @@ export class ComfyUIProvider extends BaseProvider {
           width: width,
           height: height,
           video_frames: videoFrames,
-          motion_bucket_id: 127, // Higher = more motion
-          fps: params.fps,
+          motion_bucket_id: 127,
+          fps: 6, // SVD works best at 6fps, we'll interpolate later if needed
           augmentation_level: 0.0,
         },
         class_type: 'SVD_img2vid_Conditioning',
       },
-      // 4. Video sampler
+      // 4. Sample video latents
       '4': {
         inputs: {
           seed: params.seed,
@@ -160,7 +158,7 @@ export class ComfyUIProvider extends BaseProvider {
         },
         class_type: 'KSampler',
       },
-      // 5. Decode video frames
+      // 5. Decode latents to images
       '5': {
         inputs: {
           samples: ['4', 0],
@@ -168,23 +166,13 @@ export class ComfyUIProvider extends BaseProvider {
         },
         class_type: 'VAEDecode',
       },
-      // 6. Convert images to video
+      // 6. Save as image sequence (ComfyUI's default output)
       '6': {
         inputs: {
           images: ['5', 0],
-          fps: params.fps,
+          filename_prefix: 'svd_video',
         },
-        class_type: 'CreateVideo',
-      },
-      // 7. Save video
-      '7': {
-        inputs: {
-          video: ['6', 0],
-          filename_prefix: 'rabbit_video',
-          format: 'mp4',
-          codec: 'h264',
-        },
-        class_type: 'SaveVideo',
+        class_type: 'SaveImage',
       },
     };
   }
@@ -217,9 +205,9 @@ export class ComfyUIProvider extends BaseProvider {
   /**
    * Poll ComfyUI for workflow completion
    */
-  private async pollForCompletion(promptId: string, maxAttempts = 60): Promise<string> {
+  private async pollForCompletion(promptId: string, maxAttempts = 120): Promise<string> {
     for (let i = 0; i < maxAttempts; i++) {
-      await this.sleep(5000); // Wait 5 seconds between polls
+      await this.sleep(3000); // Wait 3 seconds between polls
 
       try {
         const historyResponse = await fetch(`${this.baseURL}/history/${promptId}`);
@@ -230,20 +218,28 @@ export class ComfyUIProvider extends BaseProvider {
 
         const history = await historyResponse.json();
 
-        if (history[promptId] && history[promptId].status?.completed) {
-          // Get the output images/video
-          const outputs = history[promptId].outputs;
+        // Check if the prompt exists in history
+        if (history[promptId]) {
+          const promptHistory = history[promptId];
 
-          // Find the video file in outputs
-          for (const nodeId in outputs) {
-            const output = outputs[nodeId];
-            if (output.images && output.images.length > 0) {
-              const filename = output.images[0].filename;
-              const subfolder = output.images[0].subfolder || '';
-              const type = output.images[0].type || 'output';
+          // Check if completed
+          if (promptHistory.status && promptHistory.status.completed !== undefined) {
+            const outputs = promptHistory.outputs;
 
-              // Return URL to the video file
-              return `${this.baseURL}/view?filename=${filename}&subfolder=${subfolder}&type=${type}`;
+            // Find the saved images
+            for (const nodeId in outputs) {
+              const output = outputs[nodeId];
+              if (output.images && output.images.length > 0) {
+                // Return the first image (or we could create a GIF/video from the sequence)
+                const firstImage = output.images[0];
+                const filename = firstImage.filename;
+                const subfolder = firstImage.subfolder || '';
+                const type = firstImage.type || 'output';
+
+                // For now, return URL to first frame
+                // TODO: In production, you'd want to create a video file from the image sequence
+                return `${this.baseURL}/view?filename=${filename}&subfolder=${subfolder}&type=${type}`;
+              }
             }
           }
         }
@@ -253,7 +249,7 @@ export class ComfyUIProvider extends BaseProvider {
     }
 
     throw new ProviderError(
-      'Video generation timed out',
+      'Video generation timed out after 6 minutes',
       this.name,
       408
     );
