@@ -6,6 +6,8 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { Model } from '@/lib/types';
 import { ModelRegistry } from '@/components/ModelRegistry';
+import { ModelDialog } from '@/components/ModelDialog';
+import { GPUServerControl } from '@/components/GPUServerControl';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -29,21 +31,84 @@ export default function AdminModelsPage() {
     setLoading(false);
   }, [user, userRole, loading, router]);
 
+  const [editingModel, setEditingModel] = useState<Model | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [testingModel, setTestingModel] = useState<Model | null>(null);
+
   function handleEdit(model: Model) {
-    // TODO: Open edit modal/form
-    console.log('Edit model:', model);
-    alert(`Edit functionality coming soon!\n\nModel: ${model.displayName}`);
+    setEditingModel(model);
   }
 
-  function handleTest(model: Model) {
-    // TODO: Open test interface
-    console.log('Test model:', model);
-    alert(`Test functionality coming soon!\n\nModel: ${model.displayName}\nType: ${model.type}`);
+  async function handleTest(model: Model) {
+    if (!token) return;
+
+    setTestingModel(model);
+
+    try {
+      const response = await fetch(`/api/models/${model.id}/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt: 'Hello! Please respond with a brief greeting.',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const result = data.data.testResult;
+        if (result.error) {
+          alert(`❌ Test Failed\n\nModel: ${model.displayName}\nError: ${result.error}`);
+        } else {
+          if (result.type === 'text') {
+            alert(`✅ Test Successful!\n\nModel: ${model.displayName}\nResponse: ${result.content}\n\nTokens Used: ${result.usage?.totalTokens || 'N/A'}`);
+          } else if (result.type === 'image') {
+            alert(`✅ Test Successful!\n\nModel: ${model.displayName}\nGenerated ${result.images?.length || 0} image(s)`);
+          } else if (result.type === 'video') {
+            alert(`✅ Test Successful!\n\nModel: ${model.displayName}\nVideo URL: ${result.videoUrl}`);
+          }
+        }
+      } else {
+        alert(`❌ Test Failed\n\nModel: ${model.displayName}\nError: ${data.error?.message || 'Unknown error'}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Test Failed\n\nModel: ${model.displayName}\nError: ${error.message}`);
+    } finally {
+      setTestingModel(null);
+    }
   }
 
   function handleCreateNew() {
-    // TODO: Open create form
-    alert('Create new model functionality coming soon!');
+    setShowCreateDialog(true);
+  }
+
+  async function handleSaveModel(modelData: Partial<Model>) {
+    if (!token) return;
+
+    const isEdit = !!editingModel;
+    const url = isEdit ? `/api/models/${editingModel.id}` : '/api/models';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(modelData),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error?.message || 'Failed to save model');
+    }
+
+    // Refresh the page to reload models
+    window.location.reload();
   }
 
   if (loading) {
@@ -101,12 +166,30 @@ export default function AdminModelsPage() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
+        {/* GPU Server Control */}
+        <div className="mb-8">
+          <GPUServerControl token={token!} />
+        </div>
+
+        {/* Model Registry */}
         <ModelRegistry
           onEdit={handleEdit}
           onTest={handleTest}
           onCreateNew={handleCreateNew}
         />
       </div>
+
+      {/* Model Dialogs */}
+      {(showCreateDialog || editingModel) && (
+        <ModelDialog
+          model={editingModel}
+          onClose={() => {
+            setShowCreateDialog(false);
+            setEditingModel(null);
+          }}
+          onSave={handleSaveModel}
+        />
+      )}
 
       {/* Footer */}
       <div className="border-t border-border bg-card mt-12">
