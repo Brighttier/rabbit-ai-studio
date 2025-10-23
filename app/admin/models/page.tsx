@@ -34,6 +34,7 @@ export default function AdminModelsPage() {
   const [editingModel, setEditingModel] = useState<Model | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [testingModel, setTestingModel] = useState<Model | null>(null);
+  const [removingDuplicates, setRemovingDuplicates] = useState(false);
 
   function handleEdit(model: Model) {
     setEditingModel(model);
@@ -111,6 +112,56 @@ export default function AdminModelsPage() {
     window.location.reload();
   }
 
+  async function handleRemoveDuplicates() {
+    if (!token) return;
+
+    setRemovingDuplicates(true);
+
+    try {
+      // Preview duplicates first
+      const previewResponse = await fetch('/api/admin/remove-duplicates', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const previewData = await previewResponse.json();
+
+      if (previewData.data.summary.modelsToDelete === 0) {
+        alert('No duplicate models found!');
+        setRemovingDuplicates(false);
+        return;
+      }
+
+      const confirmMsg = `Found ${previewData.data.summary.duplicateGroups} groups with duplicates.\nThis will remove ${previewData.data.summary.modelsToDelete} duplicate models.\n\nContinue?`;
+
+      if (!confirm(confirmMsg)) {
+        setRemovingDuplicates(false);
+        return;
+      }
+
+      // Execute removal
+      const deleteResponse = await fetch('/api/admin/remove-duplicates', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const deleteData = await deleteResponse.json();
+
+      if (deleteData.success) {
+        alert(`✅ Successfully removed ${deleteData.data.deletedCount} duplicate models!`);
+        window.location.reload();
+      } else {
+        alert(`❌ Failed: ${deleteData.error?.message}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setRemovingDuplicates(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -169,6 +220,25 @@ export default function AdminModelsPage() {
         {/* GPU Server Control */}
         <div className="mb-8">
           <GPUServerControl token={token!} />
+        </div>
+
+        {/* Duplicate Removal */}
+        <div className="mb-8 rounded-lg border border-border bg-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Model Maintenance</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Remove duplicate models that were created by multiple seed operations
+              </p>
+            </div>
+            <Button
+              onClick={handleRemoveDuplicates}
+              disabled={removingDuplicates}
+              variant="destructive"
+            >
+              {removingDuplicates ? 'Removing Duplicates...' : 'Remove Duplicates'}
+            </Button>
+          </div>
         </div>
 
         {/* Model Registry */}
