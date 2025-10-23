@@ -23,7 +23,7 @@ import {
 import { useAuth } from '@/lib/firebase/auth';
 
 export default function ImageGenerationPage() {
-  const { user, token } = useAuth();
+  const { user, token, userRole } = useAuth();
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -188,6 +188,14 @@ export default function ImageGenerationPage() {
             <Button variant="outline" size="sm" onClick={() => (window.location.href = '/chat')}>
               Chat
             </Button>
+            <Button variant="outline" size="sm" onClick={() => (window.location.href = '/video')}>
+              Video
+            </Button>
+            {userRole === 'admin' && (
+              <Button variant="outline" size="sm" onClick={() => (window.location.href = '/admin/models')}>
+                Admin
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => (window.location.href = '/')}>
               Home
             </Button>

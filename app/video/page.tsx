@@ -22,7 +22,7 @@ import {
 } from '@/lib/videos';
 
 export default function VideoGenerationPage() {
-  const { user, token } = useAuth();
+  const { user, token, userRole } = useAuth();
   const [videos, setVideos] = useState<GeneratedVideo[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -174,6 +174,11 @@ export default function VideoGenerationPage() {
             <Button variant="outline" size="sm" onClick={() => (window.location.href = '/image')}>
               Images
             </Button>
+            {userRole === 'admin' && (
+              <Button variant="outline" size="sm" onClick={() => (window.location.href = '/admin/models')}>
+                Admin
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => (window.location.href = '/')}>
               Home
             </Button>

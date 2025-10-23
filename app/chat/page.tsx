@@ -18,7 +18,7 @@ import {
 import { useAuth } from '@/lib/firebase/auth';
 
 export default function ChatPage() {
-  const { user, token } = useAuth();
+  const { user, token, userRole } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -384,6 +384,17 @@ export default function ChatPage() {
             {messages.length > 0 && (
               <Button variant="ghost" size="sm" onClick={handleClearChat}>
                 Clear
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => window.location.href = '/image'}>
+              Images
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.location.href = '/video'}>
+              Video
+            </Button>
+            {userRole === 'admin' && (
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/models'}>
+                Admin
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => window.location.href = '/'}>
