@@ -211,6 +211,48 @@ This usually means the **GPU server is stopped**. Our AI models run on a **Googl
 
 ---
 
+## 🔌 **API Access for External Applications**
+
+### **Accessing the API Keys Interface:**
+1. Sign in to the application
+2. Navigate to **Admin Dashboard** (`/admin`)
+3. Click **"API Keys"** button in the header OR
+4. Click the **🔑 API Keys** card in Quick Actions
+5. This takes you to `/admin/api-keys`
+
+### **Creating an API Key:**
+1. Click **"+ Create New API Key"**
+2. Enter a descriptive **name** (e.g., "Mobile App", "Python Script")
+3. Set **expiration** (0 = never expires, 30 = 30 days, etc.)
+4. Click **"Create API Key"**
+5. **⚠️ IMPORTANT:** Copy the key immediately - it's only shown once!
+6. Store it securely (password manager, environment variable, etc.)
+
+### **Using API Keys in External Apps:**
+```bash
+# Example with cURL
+curl -X POST https://rabbit.brighttier.com/api/generate-text \
+  -H "Authorization: Bearer rabbit_sk_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Hello AI", "modelId": "dolphin-llama3:8b"}'
+```
+
+### **Available API Endpoints:**
+- **Text Generation:** `POST /api/generate-text`
+- **Image Generation:** `POST /api/generate-image`
+- **Video Generation:** `POST /api/generate-video`
+- **List Models:** `GET /api/models`
+
+### **Rate Limits:**
+- Text: 100 requests/minute
+- Images: 20 requests/minute
+- Video: 5 requests/minute
+
+### **Full API Documentation:**
+See `API_DOCUMENTATION.md` for complete examples in Python, JavaScript, PHP, and more.
+
+---
+
 ## 📞 **Support & Contact**
 
 ### **For Technical Issues:**
@@ -229,6 +271,12 @@ This usually means the **GPU server is stopped**. Our AI models run on a **Googl
 - Prompt optimization
 - Feature explanations
 - Performance issues
+
+### **For API Integration:**
+- API key issues
+- Rate limit increases
+- Integration examples
+- Webhook setup
 
 ---
 

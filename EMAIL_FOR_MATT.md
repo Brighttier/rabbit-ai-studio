@@ -40,7 +40,15 @@ Your access to **Rabbit AI Studio** is now ready! This is our internal AI platfo
 - **Fixed slow responses** with static IP implementation
 - **Added password visibility toggle** to signin
 - **Enhanced model reliability** and performance
+- **API access enabled** for external applications
 - **11 active models** ready to use
+
+## 🔑 **API Access for External Apps**
+You can now generate API keys for external applications! Access the **Admin Dashboard** → **API Keys** to:
+- Create API keys for mobile apps, scripts, or other services
+- Set expiration dates or create permanent keys
+- Monitor usage and manage key permissions
+- See full documentation at API_DOCUMENTATION.md
 
 ## 📞 **Need Help?**
 - **Login issues:** Contact admin for password reset

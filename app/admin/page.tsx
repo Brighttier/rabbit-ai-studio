@@ -111,6 +111,9 @@ export default function AdminDashboard() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Admin Dashboard</h1>
         <div className="flex items-center space-x-4">
+          <Link href="/admin/api-keys">
+            <Button>API Keys</Button>
+          </Link>
           <Link href="/admin/models">
             <Button>Manage Models</Button>
           </Link>
@@ -317,6 +320,16 @@ export default function AdminDashboard() {
                     <div className="font-medium text-foreground mb-1">User Management</div>
                     <div className="text-sm text-muted-foreground">
                       Create and manage user accounts
+                    </div>
+                  </div>
+                </Link>
+
+                <Link href="/admin/api-keys">
+                  <div className="rounded-lg border border-border bg-card p-6 hover:bg-accent transition-colors cursor-pointer">
+                    <div className="text-3xl mb-2">🔑</div>
+                    <div className="font-medium text-foreground mb-1">API Keys</div>
+                    <div className="text-sm text-muted-foreground">
+                      Generate keys for external apps
                     </div>
                   </div>
                 </Link>
