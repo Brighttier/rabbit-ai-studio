@@ -56,6 +56,18 @@ Our AI models run on a **Google Cloud spot instance** (NVIDIA L4 GPU):
 - **Static IP maintained** - no configuration changes needed
 - **All models preserved** - no data loss during restarts
 
+**Admin Quick Start Commands:**
+```bash
+# Check if server is running
+gcloud compute instances describe rabbit-ai-gpu --zone=us-west1-b --project=tanzen-186b4 --format="value(status)"
+
+# Start server if stopped
+gcloud compute instances start rabbit-ai-gpu --zone=us-west1-b --project=tanzen-186b4
+
+# Test services after startup (wait 2-3 minutes)
+curl -s http://34.83.248.1:11434/api/tags
+```
+
 ## 🎯 **Remember:**
 - This is an **internal, uncensored platform** - use responsibly
 - All models are **self-hosted** on our GPU infrastructure

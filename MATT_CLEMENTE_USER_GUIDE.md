@@ -161,6 +161,42 @@ This usually means the **GPU server is stopped**. Our AI models run on a **Googl
 - **Static IP maintained** - no configuration changes
 - **Automatic restart** on most shutdowns
 
+**Admin Instructions for Starting Stopped GPU Server:**
+
+1. **Check Server Status:**
+   ```bash
+   gcloud compute instances describe rabbit-ai-gpu --zone=us-west1-b --project=tanzen-186b4 --format="value(status)"
+   ```
+
+2. **If Status Shows "TERMINATED" or "STOPPED", Start Server:**
+   ```bash
+   gcloud compute instances start rabbit-ai-gpu --zone=us-west1-b --project=tanzen-186b4
+   ```
+
+3. **Verify Services After Startup (wait 2-3 minutes):**
+   ```bash
+   # Test Ollama (Text Models)
+   curl -s http://34.83.248.1:11434/api/tags
+   
+   # Test Automatic1111 (Image Models)
+   curl -s http://34.83.248.1:7860/sdapi/v1/samplers
+   
+   # Test ComfyUI (Video Models)
+   curl -s http://34.83.248.1:8188/system_stats
+   ```
+
+4. **Check Application Health:**
+   ```bash
+   curl -s https://rabbit-ai-studio-main--tanzen-186b4.us-east4.hosted.app/api/health
+   ```
+
+**Server Details:**
+- **Instance Name:** `rabbit-ai-gpu`
+- **Project:** `tanzen-186b4`
+- **Zone:** `us-west1-b`
+- **Static IP:** `34.83.248.1`
+- **Startup Time:** ~2-3 minutes for all services
+
 ### **Authentication Issues:**
 - **Clear browser cookies** for the site
 - **Try incognito/private browsing**
