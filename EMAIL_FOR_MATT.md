@@ -44,8 +44,17 @@ Your access to **Rabbit AI Studio** is now ready! This is our internal AI platfo
 
 ## 📞 **Need Help?**
 - **Login issues:** Contact admin for password reset
+- **Models not responding:** GPU server may be restarting (wait 2-3 minutes)
 - **Technical problems:** Include error messages and what you were trying to do
 - **Usage questions:** Feel free to experiment, but remember the "Seed Models" warning!
+
+## 🖥️ **About Our GPU Server**
+Our AI models run on a **Google Cloud spot instance** (NVIDIA L4 GPU):
+- **Cost-effective** setup saves ~70% on infrastructure costs
+- **May occasionally restart** during high demand periods
+- **Quick recovery** - server restarts in 2-3 minutes
+- **Static IP maintained** - no configuration changes needed
+- **All models preserved** - no data loss during restarts
 
 ## 🎯 **Remember:**
 - This is an **internal, uncensored platform** - use responsibly

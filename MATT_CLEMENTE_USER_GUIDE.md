@@ -140,6 +140,27 @@ Welcome to **Rabbit AI Studio** - your internal AI generation platform! This sys
 - **Try a different model** if one isn't responding
 - **Contact admin** if all models are down
 
+### **"All Models Unavailable" or "Server Not Responding":**
+This usually means the **GPU server is stopped**. Our AI models run on a **Google Cloud spot instance** that may occasionally stop to save costs.
+
+**What is a Spot Instance?**
+- **Cost-effective** GPU server (saves ~70% on costs)
+- **May stop automatically** during high demand periods
+- **Restarts quickly** when needed
+- **Static IP preserved** - no configuration changes needed
+
+**If Models Are Not Working:**
+1. **Check the home page** - it will show model status
+2. **Wait 2-3 minutes** - server may be starting up
+3. **Try refreshing** the page after a few minutes
+4. **Contact admin** if issue persists longer than 10 minutes
+
+**Admin Can Restart Server:**
+- Server restart takes **2-3 minutes**
+- **All models preserved** - no data loss
+- **Static IP maintained** - no configuration changes
+- **Automatic restart** on most shutdowns
+
 ### **Authentication Issues:**
 - **Clear browser cookies** for the site
 - **Try incognito/private browsing**
@@ -190,10 +211,19 @@ Welcome to **Rabbit AI Studio** - your internal AI generation platform! This sys
 ## 📊 **Current System Status**
 
 **Server Infrastructure:**
-- **GPU Server:** NVIDIA L4 (24GB VRAM)
+- **GPU Server:** NVIDIA L4 (24GB VRAM) on Google Cloud
+- **Instance Type:** Spot instance (cost-optimized, may occasionally restart)
 - **Static IP:** 34.83.248.1 (no more IP changes!)
-- **Uptime:** 99%+ availability
+- **Location:** us-west1-b (Oregon)
+- **Uptime:** 99%+ availability (with occasional spot instance restarts)
 - **Models:** 11 active models available
+
+**About Our Spot Instance Setup:**
+- **Cost Savings:** ~70% cheaper than regular instances
+- **Smart Restart:** Automatically restarts when stopped
+- **Data Preserved:** All models and configurations maintained
+- **Quick Recovery:** 2-3 minute restart time
+- **Monitoring:** System alerts admin when server needs attention
 
 **Recent Improvements:**
 - ✅ Static IP implementation (faster responses)
