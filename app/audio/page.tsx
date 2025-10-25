@@ -348,19 +348,21 @@ export default function AudioPage() {
                 </div>
               )}
 
-              {/* History */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <AudioGallery
-                  items={activeTab === 'separation' ? history.separations : history.masterings}
-                  onDelete={(id) => handleDelete(id, activeTab)}
-                  onClearAll={handleClearAll}
-                  emptyMessage={
-                    activeTab === 'separation'
-                      ? 'No stem separations yet'
-                      : 'No mastered audio yet'
-                  }
-                />
-              </div>
+              {/* History - Only show for separation and mastering tabs */}
+              {(activeTab === 'separation' || activeTab === 'mastering') && (
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <AudioGallery
+                    items={activeTab === 'separation' ? history.separations : history.masterings}
+                    onDelete={(id) => handleDelete(id, activeTab)}
+                    onClearAll={handleClearAll}
+                    emptyMessage={
+                      activeTab === 'separation'
+                        ? 'No stem separations yet'
+                        : 'No mastered audio yet'
+                    }
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -370,10 +372,12 @@ export default function AudioPage() {
       <div className="max-w-7xl mx-auto p-4 mt-6 mb-12">
         <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold text-foreground mb-3">
-            {activeTab === 'separation' ? 'Stem Separation Tips' : 'Audio Mastering Tips'}
+            {activeTab === 'separation' && 'Stem Separation Tips'}
+            {activeTab === 'mastering' && 'Audio Mastering Tips'}
+            {activeTab === 'automix' && 'Auto-Mix Tips'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-            {activeTab === 'separation' ? (
+            {activeTab === 'separation' && (
               <>
                 <div>
                   <div className="font-medium text-foreground mb-1">🎵 Best Quality</div>
@@ -388,7 +392,8 @@ export default function AudioPage() {
                   <p>Extract vocals, drums, bass, and other instruments separately</p>
                 </div>
               </>
-            ) : (
+            )}
+            {activeTab === 'mastering' && (
               <>
                 <div>
                   <div className="font-medium text-foreground mb-1">🎯 Reference Track</div>
@@ -401,6 +406,22 @@ export default function AudioPage() {
                 <div>
                   <div className="font-medium text-foreground mb-1">🔊 Output</div>
                   <p>Your track will match the sonic characteristics of the reference</p>
+                </div>
+              </>
+            )}
+            {activeTab === 'automix' && (
+              <>
+                <div>
+                  <div className="font-medium text-foreground mb-1">✨ Dual Modes</div>
+                  <p>Quick Mix for full songs or Custom Mix for individual stems</p>
+                </div>
+                <div>
+                  <div className="font-medium text-foreground mb-1">🎚️ Professional Mixing</div>
+                  <p>Uses intelligent loudness normalization for balanced output</p>
+                </div>
+                <div>
+                  <div className="font-medium text-foreground mb-1">⏱️ Processing Time</div>
+                  <p>Mixing typically takes 30-60 seconds (plus separation if Quick Mix)</p>
                 </div>
               </>
             )}
