@@ -52,3 +52,4 @@ functions/lib/
 *.swp
 *.swo
 *~
+audio-test-results/*.wav
