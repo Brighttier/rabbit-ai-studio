@@ -4,8 +4,7 @@ import { useState, useCallback } from 'react';
 import { Upload, Music2, Sparkles, Play, Download, X, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AudioPlayer from './AudioPlayer';
+import { AudioPlayer } from './AudioPlayer';
 
 interface StemFile {
   type: 'vocals' | 'drums' | 'bass' | 'other';
@@ -251,20 +250,34 @@ export default function AutoMix() {
   return (
     <div className="space-y-6">
       {/* Mode Selection */}
-      <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="quick" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Quick Mix
-          </TabsTrigger>
-          <TabsTrigger value="custom" className="gap-2">
-            <Music2 className="h-4 w-4" />
-            Custom Mix
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setMode('quick')}
+          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2 ${
+            mode === 'quick'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          <Sparkles className="h-4 w-4" />
+          Quick Mix
+        </button>
+        <button
+          onClick={() => setMode('custom')}
+          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2 ${
+            mode === 'custom'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          <Music2 className="h-4 w-4" />
+          Custom Mix
+        </button>
+      </div>
 
-        {/* Quick Mix Mode */}
-        <TabsContent value="quick" className="space-y-4 mt-4">
+      {/* Quick Mix Mode */}
+      {mode === 'quick' && (
+        <div className="space-y-4">
           <Card className="p-6">
             <div className="space-y-4">
               <div className="text-center">
@@ -337,10 +350,12 @@ export default function AutoMix() {
               )}
             </div>
           </Card>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Custom Mix Mode */}
-        <TabsContent value="custom" className="space-y-4 mt-4">
+      {/* Custom Mix Mode */}
+      {mode === 'custom' && (
+        <div className="space-y-4">
           <Card className="p-6">
             <div className="space-y-4">
               <div className="text-center">
@@ -385,8 +400,8 @@ export default function AutoMix() {
               )}
             </div>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
       {/* Progress Indicator */}
       {progress && (

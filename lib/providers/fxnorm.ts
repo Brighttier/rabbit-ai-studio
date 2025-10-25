@@ -8,10 +8,11 @@ import { BaseProvider } from './base';
 
 export interface AutoMixRequest {
   // Stem files (can be File objects or URLs from previous separation job)
-  vocals: File | string;
-  drums: File | string;
-  bass: File | string;
-  other: File | string;
+  // Required if job_id is not provided
+  vocals?: File | string;
+  drums?: File | string;
+  bass?: File | string;
+  other?: File | string;
 
   // Or provide job_id from previous separation
   job_id?: string;
