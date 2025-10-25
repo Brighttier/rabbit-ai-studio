@@ -66,25 +66,25 @@ export class FxNormProvider extends BaseProvider {
       // Add individual stem files
       if (request.vocals instanceof File) {
         formData.append('vocals', request.vocals);
-      } else {
+      } else if (request.vocals) {
         formData.append('vocals_url', request.vocals);
       }
 
       if (request.drums instanceof File) {
         formData.append('drums', request.drums);
-      } else {
+      } else if (request.drums) {
         formData.append('drums_url', request.drums);
       }
 
       if (request.bass instanceof File) {
         formData.append('bass', request.bass);
-      } else {
+      } else if (request.bass) {
         formData.append('bass_url', request.bass);
       }
 
       if (request.other instanceof File) {
         formData.append('other', request.other);
-      } else {
+      } else if (request.other) {
         formData.append('other_url', request.other);
       }
     }
@@ -120,25 +120,20 @@ export class FxNormProvider extends BaseProvider {
   /**
    * Check service health
    */
-  async healthCheck(): Promise<{ available: boolean; message?: string }> {
+  async healthCheck(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseURL}/api/health`);
 
       if (!response.ok) {
-        return { available: false, message: 'Service unavailable' };
+        return false;
       }
 
       const data = await response.json();
 
-      return {
-        available: data.services?.fxnorm === 'available',
-        message: data.status,
-      };
+      return data.services?.fxnorm === 'available' || data.status === 'healthy';
     } catch (error) {
-      return {
-        available: false,
-        message: error instanceof Error ? error.message : 'Connection failed',
-      };
+      console.error('FxNorm health check error:', error);
+      return false;
     }
   }
 
