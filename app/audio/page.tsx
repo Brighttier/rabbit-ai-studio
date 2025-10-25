@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/firebase/auth';
 import { StemSeparation } from '@/components/StemSeparation';
 import { AudioMastering } from '@/components/AudioMastering';
+import AutoMix from '@/components/AutoMix';
 import { AudioGallery } from '@/components/AudioGallery';
 import { AudioComparison } from '@/components/AudioComparison';
 import { GPUServerStatusBanner } from '@/components/GPUServerStatusBanner';
@@ -24,7 +25,7 @@ import {
 } from '@/lib/audio';
 import { ProcessedAudio, AudioFile, AudioSeparationResponse, AudioMasteringResponse } from '@/lib/types';
 
-type Tab = 'separation' | 'mastering';
+type Tab = 'separation' | 'mastering' | 'automix';
 
 export default function AudioPage() {
   const { user, token, userRole } = useAuth();
@@ -260,23 +261,33 @@ export default function AudioPage() {
                 <div className="flex gap-2 mb-6">
                   <button
                     onClick={() => setActiveTab('separation')}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors text-sm ${
                       activeTab === 'separation'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
-                    Stem Separation
+                    Separation
                   </button>
                   <button
                     onClick={() => setActiveTab('mastering')}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors text-sm ${
                       activeTab === 'mastering'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     Mastering
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('automix')}
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors text-sm ${
+                      activeTab === 'automix'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    Auto-Mix
                   </button>
                 </div>
 
@@ -297,6 +308,10 @@ export default function AudioPage() {
                     onError={handleError}
                     token={token}
                   />
+                )}
+
+                {activeTab === 'automix' && token && (
+                  <AutoMix />
                 )}
               </div>
             </div>
