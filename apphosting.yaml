@@ -63,6 +63,10 @@ env:
     value: http://34.83.248.1:7860
   - variable: COMFYUI_BASE_URL
     value: http://34.83.248.1:8188
+  - variable: DEMUCS_BASE_URL
+    value: http://34.83.248.1:8080
+  - variable: NEXT_PUBLIC_FXNORM_BASE_URL
+    value: http://34.83.248.1:8080
 
   # API Keys - From Secret Manager
   - variable: HUGGINGFACE_API_KEY
