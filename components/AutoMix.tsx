@@ -444,9 +444,14 @@ export default function AutoMix() {
           <div className="space-y-2">
             <p className="text-sm font-medium">Mixed Output</p>
             <AudioPlayer
-              src={mixResult.mixedFile.url}
-              title="Auto-Mixed Track"
+              audioFile={{
+                name: mixResult.mixedFile.filename,
+                url: mixResult.mixedFile.url,
+                format: mixResult.mixedFile.format as any,
+                size: mixResult.mixedFile.size,
+              }}
               showWaveform
+              showDownload={false}
             />
           </div>
 
