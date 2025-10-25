@@ -13,7 +13,7 @@ import {
  */
 export interface AIProvider {
   name: string;
-  type: 'text' | 'image' | 'video' | 'multimodal';
+  type: 'text' | 'image' | 'video' | 'audio' | 'multimodal';
 
   // Text generation
   generateText?(
@@ -99,7 +99,7 @@ export class AuthenticationError extends ProviderError {
  */
 export abstract class BaseProvider implements AIProvider {
   abstract name: string;
-  abstract type: 'text' | 'image' | 'video' | 'multimodal';
+  abstract type: 'text' | 'image' | 'video' | 'audio' | 'multimodal';
 
   protected config: ProviderConfig;
 

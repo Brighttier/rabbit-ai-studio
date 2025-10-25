@@ -21,9 +21,11 @@ export type ModelProvider =
   | 'replicate'
   | 'automatic1111'
   | 'comfyui'
+  | 'demucs'
+  | 'matchering'
   | 'custom';
 
-export type ModelType = 'text' | 'image' | 'video' | 'multimodal';
+export type ModelType = 'text' | 'image' | 'video' | 'audio' | 'multimodal';
 
 export interface Model {
   id: string;
@@ -65,7 +67,7 @@ export interface Model {
 }
 
 // Session Types
-export type SessionType = 'chat' | 'image' | 'video' | 'multimodal';
+export type SessionType = 'chat' | 'image' | 'video' | 'audio' | 'multimodal';
 
 export interface Session {
   id: string;
@@ -188,6 +190,60 @@ export interface ApiKey {
   lastUsedAt: Date | null;
   expiresAt: Date | null; // Optional expiration
   enabled: boolean;
+}
+
+// Audio Processing Types
+export type AudioFormat = 'wav' | 'mp3' | 'flac' | 'm4a';
+export type StemType = 'vocals' | 'drums' | 'bass' | 'other';
+
+export interface AudioFile {
+  name: string;
+  url: string;
+  format: AudioFormat;
+  size: number;
+  duration?: number;
+}
+
+export interface AudioSeparationRequest {
+  audioFile: File | string;
+  modelId: string;
+  stems?: StemType[];
+  outputFormat?: AudioFormat;
+}
+
+export interface AudioSeparationResponse {
+  success: boolean;
+  jobId: string;
+  model: string;
+  stems: AudioFile[];
+  downloadBase: string;
+}
+
+export interface AudioMasteringRequest {
+  targetFile: File | string;
+  referenceFile: File | string;
+  outputFormat?: AudioFormat;
+}
+
+export interface AudioMasteringResponse {
+  success: boolean;
+  jobId: string;
+  mastered: AudioFile;
+  downloadUrl: string;
+}
+
+export interface ProcessedAudio {
+  id: string;
+  type: 'separation' | 'mastering';
+  originalFile: string;
+  outputFiles: AudioFile[];
+  timestamp: Date;
+  metadata?: {
+    model?: string;
+    stems?: StemType[];
+    targetFile?: string;
+    referenceFile?: string;
+  };
 }
 
 // Log Types

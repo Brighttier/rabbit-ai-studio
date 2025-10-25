@@ -1,0 +1,20 @@
+# Rabbit AI Studio - Audio Service Dependencies
+
+# Web framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Audio processing
+demucs==4.0.1
+matchering==2.0.6
+
+# Audio file handling
+pydub==0.25.1
+soundfile==0.12.1
+
+# HTTP client (for potential API calls)
+httpx==0.26.0
+
+# Logging and monitoring
+python-json-logger==2.0.7

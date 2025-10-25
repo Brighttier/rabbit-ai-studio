@@ -133,6 +133,8 @@ export function getProviderDisplayName(provider: ModelProvider): string {
     replicate: 'Replicate',
     automatic1111: 'Automatic1111',
     comfyui: 'ComfyUI',
+    demucs: 'Demucs',
+    matchering: 'Matchering',
   };
   return names[provider] || provider;
 }
@@ -150,7 +152,9 @@ export function getProviderColor(provider: ModelProvider): string {
     custom: 'bg-gray-500',
     replicate: 'bg-pink-500',
     automatic1111: 'bg-red-600',
-    comfyui: 'bg-indigo-500'
+    comfyui: 'bg-indigo-500',
+    demucs: 'bg-cyan-500',
+    matchering: 'bg-teal-500',
   };
   return colors[provider] || 'bg-gray-500';
 }
@@ -163,7 +167,8 @@ export function getTypeDisplayName(type: ModelType): string {
     text: 'Text',
     image: 'Image',
     multimodal: 'Multimodal',
-    video: 'Video'
+    video: 'Video',
+    audio: 'Audio'
   };
   return names[type];
 }
@@ -176,7 +181,8 @@ export function getTypeIcon(type: ModelType): string {
     text: '💬',
     image: '🎨',
     multimodal: '🔀',
-    video: '🎬'
+    video: '🎬',
+    audio: '🎵'
   };
   return icons[type];
 }
