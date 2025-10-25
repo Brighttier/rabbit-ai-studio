@@ -46,10 +46,11 @@ export class FxNormProvider extends BaseProvider {
   private baseURL: string;
 
   constructor() {
-    super({});
-    this.baseURL = process.env.NEXT_PUBLIC_FXNORM_BASE_URL ||
-                   process.env.DEMUCS_BASE_URL ||
-                   'http://34.83.248.1:8080';
+    const baseURL = process.env.NEXT_PUBLIC_FXNORM_BASE_URL ||
+                    process.env.DEMUCS_BASE_URL ||
+                    'http://34.83.248.1:8080';
+    super({ apiUrl: baseURL, timeout: 180000 }); // 3 minute timeout for mixing
+    this.baseURL = baseURL;
   }
 
   /**
